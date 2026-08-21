@@ -18,7 +18,7 @@ const KURALLAR: { baslik: string; metin: string }[] = [
   {
     baslik: 'Sadece farkı ödersin',
     metin:
-      'Kendi teklifini yükseltirken tutarın tamamını değil, aradaki farkı ödersin. En küçük artış ' +
+      'Yatırdığın para durur. Geçildiğinde yanmaz; liderliği geri almak için sıfırdan değil, yalnızca aradaki farkı ödersin. En küçük artış ' +
       tl(MIN_ARTIS) +
       '.',
   },

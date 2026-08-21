@@ -89,8 +89,18 @@ export default async function ListingPage({ params }: PageProps<'/ilan/[id]'>) {
       <section className="mt-10 rounded-2xl border border-line bg-surface/40 p-5">
         <h2 className="text-lg font-black">Teklifi yükselt</h2>
         <p className="mt-1 text-sm text-muted">
-          Sadece <strong className="text-text">farkı</strong> ödersin. 1 numara olmak için gereken:{' '}
-          <strong className="text-neon">{tl(priceOfFirstPlace(topBid))}</strong>
+          Yatırdığın <strong className="text-text">{tl(listing.currentBid)}</strong> duruyor; sadece{' '}
+          <strong className="text-text">farkı</strong> ödersin.
+          {priceOfFirstPlace(topBid) > listing.currentBid && (
+            <>
+              {' '}
+              1 numarayı almak için ek{' '}
+              <strong className="text-neon">
+                {tl(priceOfFirstPlace(topBid) - listing.currentBid)}
+              </strong>{' '}
+              yeter.
+            </>
+          )}
         </p>
         <div className="mt-4">
           {/* key: teklif degisince form yeniden kurulsun, kutuda eski (artik

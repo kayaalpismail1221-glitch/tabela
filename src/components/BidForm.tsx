@@ -75,6 +75,7 @@ export function BidForm({
         amount={amount}
         city={city}
         exclude={listingId}
+        current={current}
         onPick={(kurus) => setLira(String(Math.ceil(kurus / 100)))}
       />
 

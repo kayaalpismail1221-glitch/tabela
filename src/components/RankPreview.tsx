@@ -20,11 +20,16 @@ export function RankPreview({
   amount,
   city,
   exclude,
+  current = 0,
   onPick,
 }: {
   amount: number // kurus
   city?: string
   exclude?: string
+  /** Ilanin su anki teklifi. Hedef kisayollarinda SIFIRDAN degil FARKTAN
+   *  bahsedebilmek icin gerekiyor — geri liderlik almak toplam tutari
+   *  yeniden odemek degil. */
+  current?: number
   /** "1 numara ol" tiklaninca teklif kutusunu doldurmak icin */
   onPick?: (kurus: number) => void
 }) {
@@ -113,11 +118,17 @@ export function RankPreview({
             <Hedef
               etiket={`${cityName(data.city.slug)}’da 1 numara`}
               tutar={data.city.firstPlace}
+              current={current}
               onPick={onPick}
             />
           )}
           {!turkiyeBirinci && (
-            <Hedef etiket="Türkiye 1 numara" tutar={data.national.firstPlace} onPick={onPick} />
+            <Hedef
+              etiket="Türkiye 1 numara"
+              tutar={data.national.firstPlace}
+              current={current}
+              onPick={onPick}
+            />
           )}
         </div>
       )}
@@ -128,17 +139,28 @@ export function RankPreview({
 function Hedef({
   etiket,
   tutar,
+  current = 0,
   onPick,
 }: {
   etiket: string
   tutar: number
+  current?: number
   onPick?: (kurus: number) => void
 }) {
-  const icerik = (
-    <>
-      {etiket}: <strong className="text-text">{tl(tutar)}</strong>
-    </>
-  )
+  // Zaten tahtadaysan odeyecegin sey FARK. Toplami parantezde birakiyoruz ki
+  // hangi tutara ciktigi da belli olsun.
+  const fark = tutar - current
+  const icerik =
+    current > 0 ? (
+      <>
+        {etiket}: <strong className="text-text">+{tl(fark)}</strong>{' '}
+        <span className="opacity-70">({tl(tutar)}’ye çıkar)</span>
+      </>
+    ) : (
+      <>
+        {etiket}: <strong className="text-text">{tl(tutar)}</strong>
+      </>
+    )
 
   if (!onPick) return <span className="text-xs text-muted">{icerik}</span>
 
