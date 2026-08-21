@@ -6,6 +6,7 @@ import { CITIES } from '@/lib/cities'
 import { tl } from '@/lib/format'
 import { TABAN_TEKLIF, MIN_ARTIS } from '@/lib/rules'
 import { RankPreview } from './RankPreview'
+import { PaymentMarks } from './PaymentMarks'
 
 export function ListingForm({ defaultCity = '' }: { defaultCity?: string }) {
   const router = useRouter()
@@ -190,6 +191,9 @@ export function ListingForm({ defaultCity = '' }: { defaultCity?: string }) {
       </div>
 
       {error && <p className="text-sm text-hot">{error}</p>}
+
+      {/* Kabul edilen kartlar + sozlesme onayi — odeme adiminda gorunmesi sart */}
+      <PaymentMarks />
 
       <button
         type="submit"

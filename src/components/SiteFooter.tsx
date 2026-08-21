@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { SATICI } from '@/lib/legal'
 
 export function SiteFooter() {
   return (
@@ -14,10 +15,19 @@ export function SiteFooter() {
           <Link href="/kurallar" className="hover:text-text">
             Kurallar
           </Link>
+          <Link href="/mesafeli-satis" className="hover:text-text">
+            Mesafeli Satış Sözleşmesi
+          </Link>
+          <Link href="/iptal-iade" className="hover:text-text">
+            İptal ve İade Koşulları
+          </Link>
+          <Link href="/gizlilik" className="hover:text-text">
+            Gizlilik ve KVKK
+          </Link>
           <Link href="/ilan-ver" className="hover:text-text">
             İlan Ver
           </Link>
-          <a href="mailto:merhaba@tabela.com.tr" className="hover:text-text">
+          <a href={`mailto:${SATICI.eposta}`} className="hover:text-text">
             İletişim
           </a>
         </div>

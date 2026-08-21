@@ -46,6 +46,7 @@ tek şey bu ucuz zafer.
 | `src/lib/rules.ts` | **Teklif kuralları — tek kaynak** |
 | `src/lib/bids.ts` | Teklif uygulama + ödeme kesme noktası |
 | `src/lib/board.ts` | Sıralama sorguları (sıra kuralı tek yerde) |
+| `src/lib/legal.ts` | Satici kunyesi + yururluk tarihi — yasal metinlerin tek kaynagi |
 | `src/lib/db-url.ts` | Baglanti dizesi degisken adi cozumleme — tek yer |
 | `src/lib/cities.ts` | 81 il, plaka sırasında |
 | `src/lib/links.ts` | Bağlantı çözümleme — Instagram mı site mi, tek yerde |
@@ -68,7 +69,19 @@ tek şey bu ucuz zafer.
 100 ₺) **uydurma**. Taban kullanıcı kararı (2026-08-21); diğer ikisi ona oranla
 seçildi. Gerçek değer restoran görüşmelerinden çıkacak. Tek dosya, tek değişiklik.
 
-### 2. İyzico yazıldı ama HİÇ ÇALIŞTIRILMADI
+### 2. Yasal sayfalar var, künye YOK
+`/mesafeli-satis`, `/gizlilik`, `/iptal-iade` yazıldı; footer ve ödeme adımından
+bağlı. Ödeme adımında kabul edilen kart markaları + 3DS ibaresi `PaymentMarks`
+bileşeninde (uzak görsel yok, hepsi inline SVG).
+
+⚠️ **Satıcı künyesi boş** — `src/lib/legal.ts` içindeki `SATICI` yer tutucu.
+Tüzel kişilik kurulmadan doldurulamıyor. Mesafeli Satış Sözleşmesi künyesiz
+hukuken eksiktir ve sayfa bunu kırmızı bir Taslak uyarısıyla söylüyor.
+**İyzico üye işyeri başvurusundan önce doldurulmalı.** Tek dosya, tek değişiklik.
+
+Metinler hukuk danışmanı görmedi — başvuru öncesi mali müşavir/avukat okumalı.
+
+### 3. İyzico yazıldı ama HİÇ ÇALIŞTIRILMADI
 `src/lib/iyzico.ts` + `api/iyzico/callback` duruyor. **Canlı anahtarla tek bir
 kez bile denenmedi** — üye işyeri hesabı yok.
 
@@ -89,7 +102,7 @@ Bilinçli kararlar:
 - `identityNumber` sabit gönderiliyor — TCKN toplamıyoruz (KVKK). ⚠️ İyzico
   fraud skorlamasını etkileyebilir, üye işyeri açılışında sorulmalı.
 
-### 3. Sahiplik doğrulaması YOK — bilinçli karar (2026-08-21)
+### 4. Sahiplik doğrulaması YOK — bilinçli karar (2026-08-21)
 İlan verirken hesap sahipliği doğrulanmıyor, sürtünmeyi kaldırmak için.
 **Açık risk:** biri rakibinin mekânını tahtaya çıkarabilir ya da bir hesabı
 işgal edebilir. Tek fren, ilanın paralı olması. Şikâyet gelirse elle indirme
@@ -101,14 +114,14 @@ kez tahtaya çıkamaz (`Listing.url` unique). Instagram bağlantısı mobilde
 uygulamayı açar, açamazsa web'e düşer — bu tarayıcının işi, kodda özel bir şey
 yok.
 
-### 4. "Üste çıkıldın" bildirimi yok
+### 5. "Üste çıkıldın" bildirimi yok
 Tekrar gelirin motoru bu. Mail + WhatsApp. Şu an sadece akışta görünüyor.
 
-### 5. Haftalık teslimat kaydı boş
+### 6. Haftalık teslimat kaydı boş
 `Delivery` modeli duruyor ama yazan yok. Satışın karşılığı olan story/post'un
 kanıtı orada tutulacak.
 
-### 6. Veritabanı Prisma Postgres
+### 7. Veritabanı Prisma Postgres
 SQLite'tan çıkıldı (2026-08-21). Sağlayıcı **Prisma Postgres** (`db.prisma.io`),
 Vercel > Storage üzerinden bağlı.
 

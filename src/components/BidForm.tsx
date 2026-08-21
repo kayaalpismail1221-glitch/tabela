@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { tl } from '@/lib/format'
 import { MIN_ARTIS } from '@/lib/rules'
 import { RankPreview } from './RankPreview'
+import { PaymentMarks } from './PaymentMarks'
 
 export function BidForm({
   listingId,
@@ -80,6 +81,8 @@ export function BidForm({
       />
 
       {error && <p className="mt-1.5 text-xs text-hot">{error}</p>}
+
+      <PaymentMarks className="mt-3" />
 
       <button
         type="submit"
