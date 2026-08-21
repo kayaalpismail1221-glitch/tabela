@@ -108,9 +108,15 @@ Tekrar gelirin motoru bu. Mail + WhatsApp. Şu an sadece akışta görünüyor.
 kanıtı orada tutulacak.
 
 ### 6. Veritabanı Postgres — lokalde de aynısı
-SQLite'tan çıkıldı (2026-08-21). `DATABASE_URL` (havuzlanmış) + `DIRECT_URL`
-(havuzsuz, `db push` için) gerekiyor; ikisini de Vercel'in Neon entegrasyonu
-otomatik veriyor.
+SQLite'tan çıkıldı (2026-08-21). `DATABASE_URL` (havuzlanmış) +
+`DATABASE_URL_UNPOOLED` (havuzsuz, `db push` için) gerekiyor. **İsimler
+bilerek Neon'un ürettiği isimler** — Vercel'de elle env eklemek gerekmesin
+diye. Başka bir sağlayıcıya geçilirse `prisma/schema.prisma` içindeki
+`directUrl` satırı değişir.
+
+Kurulum takılırsa `GET /api/health` hangi aşamada olduğunu söyler:
+`DB_YOK` → `BAGLANTI_YOK` → `SEMA_YOK` → `TAMAM`. Değer döndürmez, yalnızca
+"tanımlı mı" + Prisma hata kodu.
 
 **Lokalde çalıştırmak için** aynı URL'leri `.env`e koy, sonra:
 `npm run db:push && npm run db:seed`. Postgres olmadan uygulama açılmaz.

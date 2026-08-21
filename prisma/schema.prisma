@@ -11,7 +11,9 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL") // havuzlanmis baglanti (uygulama)
-  directUrl = env("DIRECT_URL") // havuzsuz baglanti (migration/db push)
+  // Neon/Vercel entegrasyonu bu ismi kendisi uretiyor — elle env eklemeye
+  // gerek yok. Baska bir saglayiciya gecerse burasi degisir.
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 model Listing {
