@@ -1,0 +1,99 @@
+# Tabela
+
+Türkiye'nin restoran tahtası. Restoranlar Instagram hesaplarıyla ilan verir,
+**sıra teklife göre** belirlenir. outbid.lol mekaniği, Türkiye'ye ve gastronomiye
+uyarlanmış hâli.
+
+> **İyi olan değil, iddialı olan üstte.** — Marka mesajı bu, ve aynı zamanda
+> hukuki kalkan. Bunu "en iyi restoranlar" diye konumlandırmak hem yalan olur
+> hem Reklam Kurulu problemi yaratır.
+
+## Ürünün tek cümlesi
+
+**Tek ekonomi, iki görünüm.** Tek ilan, tek teklif, tek para.
+Genel liste = tüm ilanlar teklife göre. Şehir listesi = aynı listenin şehir
+süzülmüş hâli — ayrı açık artırma **değil**.
+
+Bunun kritik sonucu: taban teklifle giren Trabzonlu mekân Türkiye'de 400.
+sıradadır ama **Trabzon'da 1 numaradır**. Küçük şehirdeki restorana satılabilen
+tek şey bu ucuz zafer.
+
+## Komutlar
+
+- `npm run dev` — geliştirme sunucusu
+- `npm run build` — üretim derlemesi
+- `npm run lint` — eslint (0 hata şartı)
+- `npm run typecheck` — tsc --noEmit
+- `npm run db:push` — şemayı veritabanına uygula
+- `npm run db:seed` — geliştirme verisi (51 uydurma ilan, 37 il dolu)
+
+## Yapı
+
+| Yol | İçerik |
+|---|---|
+| `src/app/page.tsx` | Genel tahta + canlı çekişme + Şehir Şampiyonları |
+| `src/app/[sehir]/` | Şehir tahtası (81 il, `cities.ts` slug'ları) |
+| `src/app/ilan/[id]/` | İlan detayı + teklif yükseltme + rozet |
+| `src/app/ilan-ver/` | İlan formu |
+| `src/app/kurallar/` | Kurallar sayfası |
+| `src/app/rozet/[id]/` | **1080×1920 story kartı** (next/og) |
+| `src/app/git/[id]/` | Tıklama sayacı + Instagram'a yönlendirme |
+| `src/app/api/listings` | İlan oluştur + ilk teklif |
+| `src/app/api/bids` | Teklif yükselt |
+| `src/app/api/activity` | Canlı çekişme akışı (8 sn yoklama) |
+| `src/lib/rules.ts` | **Teklif kuralları — tek kaynak** |
+| `src/lib/bids.ts` | Teklif uygulama + ödeme kesme noktası |
+| `src/lib/board.ts` | Sıralama sorguları (sıra kuralı tek yerde) |
+| `src/lib/cities.ts` | 81 il, plaka sırasında |
+| `public/fonts/` | Inter woff dosyaları — **sadece rozet için** |
+
+## Değişmez kurallar
+
+1. **Sıra = `currentBid DESC, firstBidAt ASC`.** Eşitlikte eski teklif üstte.
+   Bu sıralama `src/lib/board.ts` içinde tek yerde tanımlı, kopyalama.
+2. **Tutarlar kuruş cinsinden integer.** Float yok. `tl()` sadece gösterim için.
+3. **Kendi teklifini yükseltirken sadece fark tahsil edilir** (`checkBid` → `paid`).
+4. **Zirveyi almak `ZIRVE_FARKI` kadar üste çıkmayı gerektirir** — 1 numara
+   kuruş kuruş taciz edilmesin diye.
+5. **Sponsorlu sıralama ibaresi footer'dan kaldırılamaz.** Reklam Kurulu şartı.
+
+## ⏳ Açık işler
+
+### 1. Fiyat bandı yer tutucu
+`src/lib/rules.ts` içindeki üç rakam (taban 500 ₺, min artış 50 ₺, zirve farkı
+500 ₺) **uydurma**. Gerçek değer restoran görüşmelerinden çıkacak. Tek dosya,
+tek değişiklik.
+
+### 2. Ödeme bağlı değil
+`PAYMENT_MODE !== 'live'` iken teklifler anında PAID sayılıyor (`src/lib/bids.ts`).
+Canlıya almak için:
+- **Tüzel kişilik** + İyzico/PayTR üye işyeri (Stripe Türkiye'yi desteklemiyor)
+- `placeBid` PENDING yazsın → ödeme sağlayıcısı → webhook → `applyPaidBid`
+- `applyPaidBid` zaten ayrı ve idempotent duruyor, webhook'u ona bağlamak yeterli
+
+### 3. Instagram doğrulaması yarım
+`Listing.verifyCode` üretiliyor ve saklanıyor ama **zorunlu tutulmuyor**.
+Canlıya almadan önce: kullanıcı kodu bio'ya koyar → doğrula → `verifiedAt`.
+Graph API rastgele hesabın verisini vermez; scraping'e girme.
+
+### 4. "Üste çıkıldın" bildirimi yok
+Tekrar gelirin motoru bu. Mail + WhatsApp. Şu an sadece akışta görünüyor.
+
+### 5. Haftalık teslimat kaydı boş
+`Delivery` modeli duruyor ama yazan yok. Satışın karşılığı olan story/post'un
+kanıtı orada tutulacak.
+
+### 6. Veritabanı SQLite
+Lokal geliştirme için. Prod'a geçerken `prisma/schema.prisma` içinde
+`provider = "postgresql"`. Enum kullanılmadı, String alanlar bilerek seçildi —
+geçiş kırılmasın diye.
+
+## Notlar
+
+- Rozet fontu `public/fonts` altından `fs.readFile` ile okunuyor. `fetch(file://)`
+  Node runtime'da çalışmıyor; `public/` her zaman deploy'a dahil olduğu için
+  en güvenli yol bu.
+- Satori aynı aile adı altındaki ikinci dosyaya düşmüyor: latin-ext ayrı aile
+  adıyla (`InterExt`) kayıtlı ve `fontFamily: 'Inter, InterExt'` ile zincirleniyor.
+  Aksi hâlde `İ` ve `₺` tofu çıkıyor.
+- Seed'deki restoran isimlerinin tamamı **uydurma**. Gerçek hesap kullanma.

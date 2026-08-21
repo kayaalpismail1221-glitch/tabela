@@ -1,0 +1,101 @@
+// Tabela — tek ekonomi, iki gorunum.
+// Genel liste = tum ilanlar teklife gore.
+// Sehir listesi = ayni listenin sehir suzulmus hali.
+//
+// SQLite lokal gelistirme icin. Prod'a gecerken tek satir:
+//   provider = "postgresql"
+// (enum kullanilmadi, String alanlar bilerek secildi ki gecis kirilmasin)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Listing {
+  id          String    @id @default(cuid())
+  handle      String    @unique // instagram kullanici adi, @ olmadan
+  name        String
+  city        String // il slug: "istanbul"
+  district    String? // ilce, opsiyonel
+  imageUrl    String?
+  description String
+
+  // Instagram sahiplik dogrulamasi: bio'ya kod koyup dogrular
+  verifyCode String?
+  verifiedAt DateTime?
+
+  // Sira = currentBid DESC, firstBidAt ASC (esitlikte eski teklif ustte)
+  currentBid Int       @default(0) // kurus
+  firstBidAt DateTime?
+
+  clickCount Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  bids       Bid[]
+  clicks     Click[]
+  deliveries Delivery[]
+
+  @@index([currentBid])
+  @@index([city, currentBid])
+}
+
+model Bid {
+  id        String  @id @default(cuid())
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  amount Int // teklifin ulastigi toplam tutar (kurus)
+  paid   Int // bu islemde tahsil edilen fark (kendi ilanini yukseltirken sadece fark)
+
+  status     String  @default("PENDING") // PENDING | PAID | FAILED
+  paymentRef String?
+
+  // Aktivite akisi icin: bu teklif kimi geride birakti
+  passedHandle String?
+  rankAfter    Int? // teklif gecerli oldugunda olusan genel sira
+
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([listingId])
+}
+
+model Click {
+  id         String   @id @default(cuid())
+  listingId  String
+  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  visitorKey String
+  ts         DateTime @default(now())
+
+  @@index([listingId, ts])
+}
+
+// Tahtasi olmayan sehir icin bekleme listesi.
+// N talep gelince o sehir anasayfada acilir.
+model CityRequest {
+  id        String   @id @default(cuid())
+  city      String
+  handle    String
+  email     String
+  createdAt DateTime @default(now())
+
+  @@unique([city, handle])
+}
+
+// Haftalik teslimat kaniti (story/post). Satisin tamami buna dayaniyor.
+model Delivery {
+  id        String  @id @default(cuid())
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  week         String // "2026-W34"
+  scope        String // NATIONAL | CITY
+  deliveredUrl String?
+  createdAt    DateTime @default(now())
+
+  @@unique([week, scope, listingId])
+}
