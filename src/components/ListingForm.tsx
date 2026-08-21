@@ -8,17 +8,20 @@ import { TABAN_TEKLIF, MIN_ARTIS } from '@/lib/rules'
 import { RankPreview } from './RankPreview'
 import { PaymentMarks } from './PaymentMarks'
 
-export function ListingForm({ defaultCity = '' }: { defaultCity?: string }) {
+export function ListingForm({
+  defaultCity = '',
+  defaultLira = null,
+}: {
+  defaultCity?: string
+  defaultLira?: number | null
+}) {
   const router = useRouter()
   const [link, setLink] = useState('')
   const [name, setName] = useState('')
   const [city, setCity] = useState(defaultCity)
   const [district, setDistrict] = useState('')
   const [description, setDescription] = useState('')
-  const [ownerName, setOwnerName] = useState('')
-  const [ownerEmail, setOwnerEmail] = useState('')
-  const [ownerPhone, setOwnerPhone] = useState('')
-  const [lira, setLira] = useState(String(TABAN_TEKLIF / 100))
+  const [lira, setLira] = useState(String(defaultLira ?? TABAN_TEKLIF / 100))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -28,8 +31,6 @@ export function ListingForm({ defaultCity = '' }: { defaultCity?: string }) {
     name.trim().length >= 2 &&
     city !== '' &&
     description.trim().length >= 5 &&
-    ownerName.trim().length >= 2 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ownerEmail) &&
     amount >= TABAN_TEKLIF
 
   async function submit(e: React.FormEvent) {
@@ -40,17 +41,7 @@ export function ListingForm({ defaultCity = '' }: { defaultCity?: string }) {
     const res = await fetch('/api/listings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        link,
-        name,
-        city,
-        district,
-        description,
-        ownerName,
-        ownerEmail,
-        ownerPhone,
-        amount,
-      }),
+      body: JSON.stringify({ link, name, city, district, description, amount }),
     })
     const data = await res.json()
 
@@ -123,47 +114,6 @@ export function ListingForm({ defaultCity = '' }: { defaultCity?: string }) {
         />
       </Field>
 
-      {/* Iletisim: hem odemenin alici bilgisi hem "uste cikildin" bildirimi.
-          Uydurma alici verisi Iyzico'nun fraud skorlamasini bozuyor. */}
-      <fieldset className="rounded-xl border border-line p-4">
-        <legend className="px-1 text-sm font-bold">İletişim</legend>
-        <p className="text-xs text-muted">
-          Fatura ve “üste çıkıldın” bildirimi için. Tahtada görünmez.
-        </p>
-
-        <div className="mt-3 space-y-4">
-          <Field label="Ad soyad">
-            <input
-              value={ownerName}
-              onChange={(e) => setOwnerName(e.target.value)}
-              placeholder="İsmail Kayaalp"
-              className="w-full rounded-xl border border-line bg-ink px-3 py-3 outline-none focus:border-neon"
-            />
-          </Field>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="E-posta">
-              <input
-                type="email"
-                value={ownerEmail}
-                onChange={(e) => setOwnerEmail(e.target.value)}
-                placeholder="ad@ornek.com"
-                className="w-full rounded-xl border border-line bg-ink px-3 py-3 outline-none focus:border-neon"
-              />
-            </Field>
-
-            <Field label="Telefon" hint="İsteğe bağlı.">
-              <input
-                type="tel"
-                value={ownerPhone}
-                onChange={(e) => setOwnerPhone(e.target.value)}
-                placeholder="+90 5xx xxx xx xx"
-                className="w-full rounded-xl border border-line bg-ink px-3 py-3 outline-none focus:border-neon"
-              />
-            </Field>
-          </div>
-        </div>
-      </fieldset>
 
       <div>
         <span className="text-sm font-bold">Teklifin</span>

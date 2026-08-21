@@ -10,9 +10,9 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Tabela — Türkiye’nin en iddialı restoranları',
+  title: 'Tabela — Türkiye’nin en iddialı işletmeleri',
   description:
-    'İyi olan değil, iddialı olan üstte. Restoranlar teklif verir, sıralama teklife göre değişir. Şehrinde 1 numara ol.',
+    'İyi olan değil, iddialı olan üstte. İşletmeler teklif verir, sıralama teklife göre değişir. Şehrinde 1 numara ol.',
 }
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {

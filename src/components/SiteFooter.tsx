@@ -33,7 +33,7 @@ export function SiteFooter() {
         </div>
 
         <p className="mt-6 text-xs text-muted/70">
-          Tabela — Türkiye’nin restoran tahtası. Instagram, Meta Platforms’a aittir; bu site
+          Tabela — Türkiye’nin işletme tahtası. Instagram, Meta Platforms’a aittir; bu site
           Instagram ile ilişkili değildir.
         </p>
       </div>

@@ -77,6 +77,17 @@ export async function placeBid(
   // --- Canli: Iyzico odeme formu ---
   if (!ctx) return { ok: false, error: 'Ödeme başlatılamadı.' }
 
+  // Alici bilgisi olmadan Iyzico'ya UYDURMA veri gondermiyoruz: fraud
+  // skorlamasini bozar ve fatura kesilemez. Odeme canliya alinirken ilan
+  // formuna ya da odeme oncesi bir adima e-posta alani geri konulmali.
+  if (!listing.ownerName || !listing.ownerEmail) {
+    await prisma.bid.update({
+      where: { id: bid.id },
+      data: { status: 'FAILED', failureCode: 'ALICI_YOK', failureMsg: 'Iletisim bilgisi yok' },
+    })
+    return { ok: false, error: 'Ödeme için iletişim bilgisi gerekiyor.' }
+  }
+
   try {
     const res = await odemeBaslat({
       bidId: bid.id,

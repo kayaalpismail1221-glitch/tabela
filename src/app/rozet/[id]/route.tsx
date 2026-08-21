@@ -17,12 +17,19 @@ async function loadFonts() {
   const dosya = async (ad: string) =>
     readFile(join(process.cwd(), 'public', 'fonts', ad))
 
-  const [l900, e900, l400, e400] = await Promise.all([
-    dosya('inter-latin-900-normal.woff'),
-    dosya('inter-latin-ext-900-normal.woff'),
-    dosya('inter-latin-400-normal.woff'),
-    dosya('inter-latin-ext-400-normal.woff'),
-  ])
+  let l900, e900, l400, e400
+  try {
+    ;[l900, e900, l400, e400] = await Promise.all([
+      dosya('inter-latin-900-normal.woff'),
+      dosya('inter-latin-ext-900-normal.woff'),
+      dosya('inter-latin-400-normal.woff'),
+      dosya('inter-latin-ext-400-normal.woff'),
+    ])
+  } catch (e) {
+    // Fontsuz kart cirkin ama calisir; 500 donmek paylasimi tamamen oldururdu.
+    console.error('[rozet] font okunamadi, gomulu fonta dusuluyor', e)
+    return []
+  }
 
   return [
     { name: 'Inter', data: l900, weight: 900 as const, style: 'normal' as const },

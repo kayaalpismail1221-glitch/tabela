@@ -12,6 +12,11 @@ export default async function IlanVerPage({ searchParams }: PageProps<'/ilan-ver
   const raw = typeof sp.sehir === 'string' ? sp.sehir : ''
   const defaultCity = cityBySlug(raw) ? raw : ''
 
+  // Anasayfadaki "1 numarayi X'e al" secimi forma tasiniyor
+  const teklifRaw = typeof sp.teklif === 'string' ? Number(sp.teklif) : NaN
+  const defaultLira =
+    Number.isFinite(teklifRaw) && teklifRaw >= TABAN_TEKLIF / 100 ? Math.round(teklifRaw) : null
+
   return (
     <div className="mx-auto max-w-xl px-4 py-8 sm:py-12">
       <h1 className="text-3xl font-black sm:text-4xl">Tahtaya çık</h1>
@@ -22,7 +27,7 @@ export default async function IlanVerPage({ searchParams }: PageProps<'/ilan-ver
       </p>
 
       <div className="mt-8">
-        <ListingForm defaultCity={defaultCity} />
+        <ListingForm defaultCity={defaultCity} defaultLira={defaultLira} />
       </div>
     </div>
   )

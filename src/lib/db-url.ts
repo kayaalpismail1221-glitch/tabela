@@ -18,13 +18,29 @@ const ADAYLAR = [
 
 export type DbUrlSonuc = { name: string; url: string } | null
 
+/**
+ * Sunucusuz ortamda her istek kendi baglantisini aciyor; saglayicinin
+ * baglanti kotasi bir anda doluyor ("too many connections", P2037).
+ * Her istemciyi TEK baglantiya sabitliyoruz — sunucusuz icin onerilen ayar.
+ */
+function havuzuSinirla(url: string): string {
+  try {
+    const u = new URL(url)
+    if (!u.searchParams.has('connection_limit')) u.searchParams.set('connection_limit', '1')
+    if (!u.searchParams.has('pool_timeout')) u.searchParams.set('pool_timeout', '15')
+    return u.toString()
+  } catch {
+    return url // ayristirilamadiysa dokunma
+  }
+}
+
 /** Ilk gecerli postgres dizesini ve HANGI degiskenden geldigini dondurur. */
 export function resolveDbUrl(): DbUrlSonuc {
   for (const name of ADAYLAR) {
     const url = process.env[name]?.trim()
     // Bos ya da "postgres olmayan" degerler atlanir: projede eski/yanlis bir
     // DATABASE_URL kalmissa dogru olanin onunu tikamasin.
-    if (url && /^postgres(ql)?:\/\//.test(url)) return { name, url }
+    if (url && /^postgres(ql)?:\/\//.test(url)) return { name, url: havuzuSinirla(url) }
   }
   return null
 }

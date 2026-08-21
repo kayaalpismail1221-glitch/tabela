@@ -34,8 +34,11 @@ export async function POST(req: Request) {
   const city = (body.city ?? '').trim()
   const district = (body.district ?? '').trim() || null
   const description = (body.description ?? '').trim()
-  const ownerName = (body.ownerName ?? '').trim()
-  const ownerEmail = (body.ownerEmail ?? '').trim().toLowerCase()
+  // Iletisim alanlari ilan formundan kaldirildi. Sema hala tasiyor: odeme
+  // canliya alinirken Iyzico alici bilgisi istiyor ve "uste cikildin"
+  // bildirimi bu e-postaya gidecek — o adimda tekrar toplanacak.
+  const ownerName = (body.ownerName ?? '').trim() || null
+  const ownerEmail = (body.ownerEmail ?? '').trim().toLowerCase() || null
   const ownerPhone = (body.ownerPhone ?? '').trim() || null
   const amount = Number(body.amount)
 
@@ -54,10 +57,7 @@ export async function POST(req: Request) {
   if (description.length < 5 || description.length > 90) {
     return NextResponse.json({ error: 'Açıklama 5-90 karakter olmalı.' }, { status: 400 })
   }
-  if (ownerName.length < 2) {
-    return NextResponse.json({ error: 'Ad soyad gerekli.' }, { status: 400 })
-  }
-  if (!EPOSTA.test(ownerEmail)) {
+  if (ownerEmail && !EPOSTA.test(ownerEmail)) {
     return NextResponse.json({ error: 'Geçerli bir e-posta yaz.' }, { status: 400 })
   }
   if (!Number.isInteger(amount) || amount < TABAN_TEKLIF) {

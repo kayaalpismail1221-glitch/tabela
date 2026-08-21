@@ -33,8 +33,10 @@ model Listing {
   // Ilan sahibi. Iki isi birden goruyor:
   //   1) Iyzico alici bilgisi (uydurma veri fraud skorlamasini bozuyor)
   //   2) "Uste cikildin" bildirimi — tekrar gelirin motoru
-  ownerName  String
-  ownerEmail String
+  // Ilan formunda sorulmuyor; odeme adiminda toplanacak (Iyzico alici bilgisi
+  // + "uste cikildin" bildirimi icin gerekli).
+  ownerName  String?
+  ownerEmail String?
   ownerPhone String?
 
   // Sira = currentBid DESC, firstBidAt ASC (esitlikte eski teklif ustte)
@@ -112,4 +114,15 @@ model Delivery {
   createdAt    DateTime @default(now())
 
   @@unique([week, scope, listingId])
+}
+
+// Ziyaretci sayaci. Cerez YOK, ham IP saklanmiyor: anahtar IP+tarayici
+// bilgisinden turetilen geri dondurulemez bir ozet. Gizlilik metninde
+// tiklama sayaci icin anlatilan yontemin aynisi.
+model Visitor {
+  key       String   @id
+  firstSeen DateTime @default(now())
+  lastSeen  DateTime @default(now())
+
+  @@index([lastSeen])
 }

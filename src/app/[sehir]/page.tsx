@@ -18,7 +18,7 @@ export async function generateMetadata({
   if (!city) return {}
   return {
     title: `${city.name} tahtası — Tabela`,
-    description: `${city.name}’nin en iddialı restoranları. Sıra teklife göre.`,
+    description: `${city.name}’nin en iddialı işletmeleri. Sıra teklife göre.`,
   }
 }
 

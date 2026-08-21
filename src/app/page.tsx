@@ -1,21 +1,23 @@
 import Link from 'next/link'
-import { getBoard, getCityChampions, getActivity } from '@/lib/board'
+import { getBoard, getCityChampions, getActivity, getTopBid } from '@/lib/board'
 import { Board, TopSpot } from '@/components/Board'
 import { CityChampions } from '@/components/CityChampions'
 import { ActivityFeed } from '@/components/ActivityFeed'
-import { StatStrip, StatSentence } from '@/components/StatStrip'
+import { LivePill } from '@/components/LivePill'
+import { ClaimFirst } from '@/components/ClaimFirst'
+import { TotalRaised } from '@/components/TotalRaised'
 import { getRakamlar } from '@/lib/stats'
-import { tl } from '@/lib/format'
-import { TABAN_TEKLIF } from '@/lib/rules'
+import { priceOfFirstPlace } from '@/lib/rules'
 
 export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
-  const [rows, champions, activity, rakamlar] = await Promise.all([
+  const [rows, champions, activity, rakamlar, topBid] = await Promise.all([
     getBoard(undefined, 50),
     getCityChampions(),
     getActivity(20),
     getRakamlar(),
+    getTopBid(),
   ])
 
   const [first, ...rest] = rows
@@ -23,32 +25,17 @@ export default async function HomePage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
       <section className="text-center">
-        <h1 className="text-4xl font-black leading-[1.05] sm:text-6xl">
-          Türkiye’nin
-          <br />
-          <span className="neon text-neon">en iddialı</span> restoranları
-        </h1>
-        <p className="mx-auto mt-4 max-w-xl text-balance text-muted">
-          Sıra teklife göre. Kim daha çok verirse üstte. Şehrinde 1 numara olmak{' '}
-          <span className="font-bold text-text">{tl(TABAN_TEKLIF)}</span>’den başlıyor.
-        </p>
+        <LivePill aktif={rakamlar.aktif} ziyaretci={rakamlar.ziyaretci} />
 
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <Link
-            href="/ilan-ver"
-            className="rounded-full bg-neon px-6 py-3 font-bold text-ink transition hover:brightness-110"
-          >
-            İlan Ver
-          </Link>
-          <Link
-            href="/kurallar"
-            className="rounded-full border border-line px-6 py-3 font-bold transition hover:border-neon/60"
-          >
-            Nasıl çalışıyor?
-          </Link>
+        <div className="mt-6">
+          <ClaimFirst zirveFiyati={priceOfFirstPlace(topBid)} />
         </div>
 
-        <StatStrip r={rakamlar} />
+        <p className="mt-6 text-sm text-muted">
+          <Link href="/kurallar" className="hover:text-text">
+            Nasıl çalışıyor?
+          </Link>
+        </p>
       </section>
 
       <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -71,7 +58,7 @@ export default async function HomePage() {
       </div>
 
       {/* Rakami saklamak yerine one koymak — 0 TL yaziyorsa 0 TL yazar */}
-      <StatSentence r={rakamlar} />
+      <TotalRaised r={rakamlar} />
     </div>
   )
 }
