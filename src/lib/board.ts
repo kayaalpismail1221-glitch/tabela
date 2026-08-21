@@ -20,6 +20,7 @@ export type Row = {
   description: string
   currentBid: number
   clickCount: number
+  lastBidAt: Date | null
   /** Genel listedeki sirasi — sehir tahtasinda rozet olarak gosterilir. */
   nationalRank?: number
 }
@@ -34,6 +35,7 @@ type Kayit = {
   description: string
   currentBid: number
   clickCount: number
+  lastBidAt: Date | null
 }
 
 function toRow(l: Kayit, rank: number): Row {
@@ -49,6 +51,7 @@ function toRow(l: Kayit, rank: number): Row {
     description: l.description,
     currentBid: l.currentBid,
     clickCount: l.clickCount,
+    lastBidAt: l.lastBidAt,
   }
 }
 

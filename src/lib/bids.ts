@@ -146,7 +146,11 @@ export async function applyPaidBid(bidId: string): Promise<void> {
     if (bid.amount > listing.currentBid) {
       await tx.listing.update({
         where: { id: listing.id },
-        data: { currentBid: bid.amount, firstBidAt: listing.firstBidAt ?? new Date() },
+        data: {
+          currentBid: bid.amount,
+          firstBidAt: listing.firstBidAt ?? new Date(),
+          lastBidAt: new Date(),
+        },
       })
     }
   })

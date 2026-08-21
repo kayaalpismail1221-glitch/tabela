@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getBoard, getCityChampions, getActivity, getTopBid } from '@/lib/board'
-import { Board, TopSpot } from '@/components/Board'
+import { Board } from '@/components/Board'
 import { CityChampions } from '@/components/CityChampions'
 import { ActivityFeed } from '@/components/ActivityFeed'
 import { LivePill } from '@/components/LivePill'
@@ -20,8 +20,6 @@ export default async function HomePage() {
     getTopBid(),
   ])
 
-  const [first, ...rest] = rows
-
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
       <section className="text-center">
@@ -40,10 +38,7 @@ export default async function HomePage() {
 
       <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div>
-          {first && <TopSpot row={first} />}
-          <div className="mt-4">
-            <Board rows={rest} />
-          </div>
+          <Board rows={rows} ayracEtiketi="Türkiye ilk 3" />
         </div>
 
         <div className="lg:sticky lg:top-20 lg:self-start">

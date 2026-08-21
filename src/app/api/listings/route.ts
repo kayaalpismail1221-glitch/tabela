@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { cityBySlug } from '@/lib/cities'
 import { parseLink } from '@/lib/links'
 import { placeBid } from '@/lib/bids'
+import { siteLogosu } from '@/lib/logo'
 import { TABAN_TEKLIF } from '@/lib/rules'
 
 export const dynamic = 'force-dynamic'
@@ -64,7 +65,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Teklif taban tutarın altında.' }, { status: 400 })
   }
 
-  const alanlar = { name, city, district, description, ownerName, ownerEmail, ownerPhone }
+  // Site logosunu biz cekiyoruz — kullaniciya gorsel yukletmiyoruz.
+  // Instagram'in herkese acik profil fotografi yok, o ilanlar harf amblemiyle
+  // kaliyor. Basarisiz olursa ilan yine olusur.
+  const imageUrl = link.kind === 'WEB' ? await siteLogosu(link.url) : null
+
+  const alanlar = {
+    name,
+    city,
+    district,
+    description,
+    ownerName,
+    ownerEmail,
+    ownerPhone,
+    ...(imageUrl ? { imageUrl } : {}),
+  }
   const mevcut = await prisma.listing.findUnique({ where: { url: link.url } })
 
   let listing

@@ -19,19 +19,25 @@ export function ClaimFirst({ zirveFiyati }: { zirveFiyati: number }) {
 
   return (
     <div>
-      <h1 className="text-3xl font-black leading-tight sm:text-5xl">
+      <h1 className="text-3xl font-black leading-[1.1] sm:text-5xl">
+        Türkiye’nin ve şehrinin
+        <br />
+        <span className="neon text-neon">en iddialı</span> işletmesi ol
+      </h1>
+
+      <div className="mt-5 text-xl font-black sm:text-3xl">
         1 numarayı{' '}
         <span className="inline-flex items-center gap-2 align-middle">
           <Dugme label="azalt" onClick={() => oynat(-1)}>
             −
           </Dugme>
-          <span className="neon tabular-nums text-neon">{tl(tutar)}</span>
+          <span className="tabular-nums text-neon">{tl(tutar)}</span>
           <Dugme label="artır" onClick={() => oynat(1)}>
             +
           </Dugme>
         </span>{' '}
         ’ye al
-      </h1>
+      </div>
 
       <p className="mx-auto mt-4 max-w-lg text-balance text-sm text-muted">
         Yeni ilanlar <span className="text-text">{tl(TABAN_TEKLIF)}</span>’den başlıyor. Daha az

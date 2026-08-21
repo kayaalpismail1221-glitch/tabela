@@ -42,6 +42,8 @@ model Listing {
   // Sira = currentBid DESC, firstBidAt ASC (esitlikte eski teklif ustte)
   currentBid Int       @default(0) // kurus
   firstBidAt DateTime?
+  /** Son gecerli teklifin zamani — listede "14 dk once" olarak gorunuyor. */
+  lastBidAt  DateTime?
 
   clickCount Int      @default(0)
   createdAt  DateTime @default(now())
