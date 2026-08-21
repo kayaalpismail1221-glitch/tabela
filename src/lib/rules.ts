@@ -5,14 +5,14 @@
 // yapilacak fiyat gorusmesinden cikacak. Degistirmek icin sadece burasi.
 
 /** Listeye ilk giris icin taban teklif. */
-export const TABAN_TEKLIF = 50_000 // 500 TL
+export const TABAN_TEKLIF = 10_000 // 100 TL
 
 /** Kendi ilanini yukseltirken zorunlu en kucuk artis. */
-export const MIN_ARTIS = 5_000 // 50 TL
+export const MIN_ARTIS = 2_500 // 25 TL
 
 /** 1 numarayi almak icin mevcut liderin en az bu kadar ustune cikmak gerekir.
  *  Ufak artislarla zirveyi taciz etmeyi engeller. */
-export const ZIRVE_FARKI = 50_000 // 500 TL
+export const ZIRVE_FARKI = 10_000 // 100 TL
 
 export type BidCheck =
   | { ok: true; paid: number }

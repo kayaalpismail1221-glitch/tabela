@@ -42,7 +42,7 @@ export function CityChampions({ champions }: { champions: Champion[] }) {
             {c.listing ? (
               <div className="mt-2.5 flex items-center gap-2.5">
                 <Avatar
-                  seed={c.listing.handle}
+                  seed={c.listing.url}
                   label={c.listing.name}
                   size={34}
                   imageUrl={c.listing.imageUrl}
@@ -58,7 +58,7 @@ export function CityChampions({ champions }: { champions: Champion[] }) {
               <div className="mt-2.5">
                 <div className="text-sm font-bold text-muted group-hover:text-text">Boş</div>
                 <div className="text-xs text-muted/80">
-                  {tl(TABAN_TEKLIF)}’ye buranın 1 numarası ol
+                  {tl(TABAN_TEKLIF)} ile buranın 1 numarası ol
                 </div>
               </div>
             )}

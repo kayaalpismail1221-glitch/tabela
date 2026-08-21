@@ -8,10 +8,10 @@ import { tl, since } from '@/lib/format'
 type Item = {
   id: string
   amount: number
-  handle: string
+  label: string
   name: string
   city: string
-  passedHandle: string | null
+  passedLabel: string | null
   rankAfter: number | null
   createdAt: string
 }
@@ -70,10 +70,10 @@ export function ActivityFeed({ initial }: { initial: Item[] }) {
             </Link>
             <p className="mt-0.5 leading-snug">
               <span className="font-bold">{it.name}</span>{' '}
-              {it.passedHandle ? (
+              {it.passedLabel ? (
                 <>
                   <span className="text-muted">şunu geçti:</span>{' '}
-                  <span className="text-hot">@{it.passedHandle}</span>
+                  <span className="text-hot">{it.passedLabel}</span>
                 </>
               ) : (
                 <span className="text-muted">tahtaya çıktı</span>

@@ -45,9 +45,9 @@ const KURALLAR: { baslik: string; metin: string }[] = [
       'Teklif, tuttuğun süre boyunca görünürlük karşılığıdır. Üste çıkıldığında ödediğin tutar iade edilmez.',
   },
   {
-    baslik: 'Sadece kendi hesabın',
+    baslik: 'Instagram ya da kendi siten',
     metin:
-      'İlan verirken Instagram hesabının sahibi olduğunu doğrularsın: bio’ya verdiğimiz kodu koyman yeterli. Başkasının hesabıyla ilan verilemez.',
+      'Tek bağlantı yazarsın: Instagram profilin ya da kendi siten. Tıklayan oraya gider. Aynı bağlantı iki kez tahtaya çıkamaz.',
   },
   {
     baslik: 'Bu bir kalite listesi değil',

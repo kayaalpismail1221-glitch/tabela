@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { cityName } from '@/lib/cities'
+import { parseLink } from '@/lib/links'
 import { tl, since } from '@/lib/format'
 import { suggestedMinimum, priceOfFirstPlace } from '@/lib/rules'
 import { Avatar } from '@/components/Avatar'
@@ -33,6 +34,7 @@ export default async function ListingPage({ params }: PageProps<'/ilan/[id]'>) {
   const cityRank = cityAbove + 1
   const nationalRank = nationalAbove + 1
   const topBid = top?.currentBid ?? 0
+  const link = parseLink(listing.url)
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
@@ -47,11 +49,11 @@ export default async function ListingPage({ params }: PageProps<'/ilan/[id]'>) {
       </nav>
 
       <header className="mt-5 flex items-start gap-4">
-        <Avatar seed={listing.handle} label={listing.name} size={72} imageUrl={listing.imageUrl} />
+        <Avatar seed={listing.url} label={listing.name} size={72} imageUrl={listing.imageUrl} />
         <div className="min-w-0 flex-1">
           <h1 className="text-3xl font-black leading-tight sm:text-4xl">{listing.name}</h1>
           <p className="mt-1 text-muted">
-            @{listing.handle} · {cityName(listing.city)}
+            {link?.label ?? listing.url} · {cityName(listing.city)}
             {listing.district ? `, ${listing.district}` : ''}
           </p>
           <p className="mt-3 text-text/80">{listing.description}</p>
@@ -72,7 +74,7 @@ export default async function ListingPage({ params }: PageProps<'/ilan/[id]'>) {
           rel="noopener noreferrer"
           className="rounded-full border border-line px-5 py-2.5 font-bold transition hover:border-neon/60"
         >
-          Instagram’da aç
+          {link?.kind === 'WEB' ? 'Siteye git' : 'Instagram’da aç'}
         </a>
         <a
           href={`/rozet/${listing.id}`}
@@ -110,8 +112,8 @@ export default async function ListingPage({ params }: PageProps<'/ilan/[id]'>) {
             <li key={b.id} className="flex items-center justify-between px-4 py-3 text-sm">
               <span>
                 <span className="font-bold tabular-nums">{tl(b.amount)}</span>
-                {b.passedHandle && (
-                  <span className="ml-2 text-muted">@{b.passedHandle} geçildi</span>
+                {b.passedLabel && (
+                  <span className="ml-2 text-muted">{b.passedLabel} geçildi</span>
                 )}
               </span>
               <span className="text-xs text-muted">{since(b.createdAt)}</span>

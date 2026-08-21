@@ -14,7 +14,7 @@ export function ListingForm({
   firstPlace: number
 }) {
   const router = useRouter()
-  const [handle, setHandle] = useState('')
+  const [link, setLink] = useState('')
   const [name, setName] = useState('')
   const [city, setCity] = useState(defaultCity)
   const [district, setDistrict] = useState('')
@@ -25,7 +25,7 @@ export function ListingForm({
 
   const amount = Math.round(Number(lira) * 100)
   const gecerli =
-    handle.trim().length >= 2 &&
+    link.trim().length >= 2 &&
     name.trim().length >= 2 &&
     city !== '' &&
     description.trim().length >= 5 &&
@@ -39,7 +39,7 @@ export function ListingForm({
     const res = await fetch('/api/listings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ handle, name, city, district, description, amount }),
+      body: JSON.stringify({ link, name, city, district, description, amount }),
     })
     const data = await res.json()
 
@@ -53,16 +53,16 @@ export function ListingForm({
 
   return (
     <form onSubmit={submit} className="space-y-5">
-      <Field label="Instagram kullanıcı adı" hint="Doğrulama için bio’ya bir kod koyman istenecek.">
-        <div className="flex items-center rounded-xl border border-line bg-ink px-3 focus-within:border-neon">
-          <span className="text-muted">@</span>
-          <input
-            value={handle}
-            onChange={(e) => setHandle(e.target.value.replace(/^@/, '').toLowerCase())}
-            placeholder="ocakbasivefa"
-            className="w-full bg-transparent py-3 pl-1 outline-none"
-          />
-        </div>
+      <Field
+        label="Bağlantın"
+        hint="Instagram profilin ya da kendi siten — hangisini yazarsan tıklayan oraya gider."
+      >
+        <input
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+          placeholder="@ocakbasivefa  ya da  ocakbasivefa.com"
+          className="w-full rounded-xl border border-line bg-ink px-3 py-3 outline-none focus:border-neon"
+        />
       </Field>
 
       <Field label="İşletme adı">

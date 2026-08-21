@@ -1,15 +1,14 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { cityBySlug } from '@/lib/cities'
-import { placeBid, TEST_MODU } from '@/lib/bids'
+import { parseLink } from '@/lib/links'
+import { placeBid } from '@/lib/bids'
 import { TABAN_TEKLIF } from '@/lib/rules'
 
 export const dynamic = 'force-dynamic'
 
-const HANDLE = /^[a-z0-9._]{2,30}$/
-
 type Body = {
-  handle?: string
+  link?: string // instagram profili ya da kendi sitesi — tur adresten cikariliyor
   name?: string
   city?: string
   district?: string
@@ -25,15 +24,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Geçersiz istek.' }, { status: 400 })
   }
 
-  const handle = (body.handle ?? '').trim().replace(/^@/, '').toLowerCase()
+  const link = parseLink(body.link ?? '')
   const name = (body.name ?? '').trim()
   const city = (body.city ?? '').trim()
   const district = (body.district ?? '').trim() || null
   const description = (body.description ?? '').trim()
   const amount = Number(body.amount)
 
-  if (!HANDLE.test(handle)) {
-    return NextResponse.json({ error: 'Instagram kullanıcı adı geçersiz.' }, { status: 400 })
+  if (!link) {
+    return NextResponse.json(
+      { error: 'Bağlantı geçersiz. Instagram profili ya da site adresi yaz.' },
+      { status: 400 }
+    )
   }
   if (name.length < 2 || name.length > 60) {
     return NextResponse.json({ error: 'İşletme adı 2-60 karakter olmalı.' }, { status: 400 })
@@ -48,28 +50,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Teklif taban tutarın altında.' }, { status: 400 })
   }
 
-  const mevcut = await prisma.listing.findUnique({ where: { handle } })
+  const mevcut = await prisma.listing.findUnique({ where: { url: link.url } })
   if (mevcut) {
     return NextResponse.json(
-      { error: 'Bu hesap zaten tahtada. Teklifini ilan sayfasından yükseltebilirsin.', listingId: mevcut.id },
+      {
+        error: 'Bu bağlantı zaten tahtada. Teklifini ilan sayfasından yükseltebilirsin.',
+        listingId: mevcut.id,
+      },
       { status: 409 }
     )
   }
 
-  // Instagram sahiplik dogrulamasi: bio'ya bu kod konulacak.
-  // (v0'da kod uretilip saklaniyor, zorunlu tutulmuyor — akisi kirmamak icin.)
-  const verifyCode = 'TABELA-' + Math.random().toString(36).slice(2, 8).toUpperCase()
-
   const listing = await prisma.listing.create({
-    data: {
-      handle,
-      name,
-      city,
-      district,
-      description,
-      verifyCode,
-      verifiedAt: TEST_MODU ? new Date() : null,
-    },
+    data: { url: link.url, name, city, district, description },
   })
 
   const result = await placeBid(listing.id, amount)
@@ -79,11 +72,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: result.error, minimum: result.minimum }, { status: 400 })
   }
 
-  return NextResponse.json({
-    listingId: listing.id,
-    rank: result.rank,
-    paid: result.paid,
-    verifyCode,
-    testMode: TEST_MODU,
-  })
+  return NextResponse.json({ listingId: listing.id, rank: result.rank, paid: result.paid })
 }

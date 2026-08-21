@@ -23,11 +23,11 @@ export function TopSpot({ row }: { row: Row }) {
       </div>
 
       <div className="mt-4 flex items-start gap-4">
-        <Avatar seed={row.handle} label={row.name} size={64} imageUrl={row.imageUrl} />
+        <Avatar seed={row.url} label={row.name} size={64} imageUrl={row.imageUrl} />
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-2xl font-black leading-tight">{row.name}</h2>
           <p className="mt-0.5 truncate text-sm text-muted">
-            @{row.handle} · {cityName(row.city)}
+            {row.label} · {cityName(row.city)}
             {row.district ? `, ${row.district}` : ''}
           </p>
           <p className="mt-2 line-clamp-2 text-sm text-text/80">{row.description}</p>
@@ -57,7 +57,7 @@ export function BoardRow({ row, showCity = true }: { row: Row; showCity?: boolea
         {row.rank}
       </span>
 
-      <Avatar seed={row.handle} label={row.name} imageUrl={row.imageUrl} />
+      <Avatar seed={row.url} label={row.name} imageUrl={row.imageUrl} />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -69,7 +69,7 @@ export function BoardRow({ row, showCity = true }: { row: Row; showCity?: boolea
           )}
         </div>
         <div className="truncate text-xs text-muted">
-          @{row.handle}
+          {row.label}
           {showCity && ` · ${cityName(row.city)}`}
           {row.district ? `, ${row.district}` : ''}
         </div>

@@ -3,9 +3,11 @@
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
+// handle bir Instagram kullanici adi ya da dogrudan bir site adresi olabilir.
 const L = (name, handle, city, district, description, bid) => ({
   name,
-  handle,
+  url: handle.includes('.') ? `https://${handle}` : `https://instagram.com/${handle}`,
+  label: handle.includes('.') ? handle : '@' + handle,
   city,
   district,
   description,
@@ -21,7 +23,7 @@ const data = [
   L('Kahvalti Ustu', 'kahvaltiustu34', 'istanbul', 'Besiktas', 'Kahvalti 7de baslar, 12de biter.', 19500),
   L('Pideci Halim', 'pidecihalim', 'istanbul', 'Fatih', 'Kapali pide, acik hesap.', 14000),
   L('Nohutlu Emmi', 'nohutluemmi', 'istanbul', 'Uskudar', 'Pilav ustu. Nokta.', 9500),
-  L('Ucuncu Dalga', 'ucuncudalgacoffee', 'istanbul', 'Cihangir', 'Filtre kahve ve biraz fazla ciddiyet.', 6500),
+  L('Ucuncu Dalga', 'ucuncudalga.com', 'istanbul', 'Cihangir', 'Filtre kahve ve biraz fazla ciddiyet.', 6500),
 
   // Ankara
   L('Ankara Doner Evi', 'ankaradonerevi', 'ankara', 'Cankaya', 'Et doner, ekmek arasi, sira bekle.', 22000),
@@ -51,7 +53,7 @@ const data = [
   L('Samsun Pide', 'samsunpidee', 'samsun', null, 'Sira beklemeye deger.', 3000),
 
   // Ic Anadolu
-  L('Konya Etli Ekmek', 'konyaetliekmek', 'konya', null, 'Bir metre. Tek kisilik degil.', 10500),
+  L('Konya Etli Ekmek', 'konyaetliekmek.com', 'konya', null, 'Bir metre. Tek kisilik degil.', 10500),
   L('Kayseri Manti', 'kayserimanti38', 'kayseri', null, 'Kasiga kirk tane.', 8000),
   L('Sivas Kofte', 'sivaskoftecisi', 'sivas', null, 'Kiymadan baska bir sey yok.', 2500),
   L('Eskisehir Ciborek', 'eskisehirciborek', 'eskisehir', null, 'Tatar usulu, sicak servis.', 3200),
@@ -59,7 +61,7 @@ const data = [
   L('Nevsehir Testi', 'nevsehirtestikebap', 'nevsehir', null, 'Kirilan testi geri gelmez.', 1800),
 
   // Ege / Marmara
-  L('Bursa Iskender', 'bursaiskenderr', 'bursa', null, 'Tereyagi masada dokulur.', 15500),
+  L('Bursa Iskender', 'bursaiskender.com.tr', 'bursa', null, 'Tereyagi masada dokulur.', 15500),
   L('Denizli Kebap', 'denizlikebapp', 'denizli', null, 'Firin kuzu, ekmek yaninda.', 3800),
   L('Mugla Zeytinyagli', 'muglazeytinyagli', 'mugla', 'Bodrum', 'Otlar sabah toplanir.', 6800),
   L('Canakkale Peynir', 'canakkalepeynirhelva', 'canakkale', null, 'Peynir helvasi, sicak.', 1500),
@@ -96,14 +98,13 @@ async function main() {
 
     const listing = await prisma.listing.create({
       data: {
-        handle: d.handle,
+        url: d.url,
         name: d.name,
         city: d.city,
         district: d.district,
         description: d.description,
         currentBid: d.bid,
         firstBidAt: firstAt,
-        verifiedAt: firstAt,
         clickCount: Math.floor(Math.random() * 900) + 20,
       },
     })
@@ -121,8 +122,8 @@ async function main() {
           paid: amount - prev,
           status: 'PAID',
           createdAt: new Date(firstAt.getTime() + s * 3_600_000 * (1 + Math.random() * 6)),
-          passedHandle:
-            s > 1 && Math.random() > 0.5 ? data[Math.floor(Math.random() * data.length)].handle : null,
+          passedLabel:
+            s > 1 && Math.random() > 0.5 ? data[Math.floor(Math.random() * data.length)].label : null,
         },
       })
       prev = amount

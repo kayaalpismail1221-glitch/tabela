@@ -5,15 +5,16 @@ import { prisma } from '@/lib/prisma'
 export const dynamic = 'force-dynamic'
 
 /**
- * Tiklama sayaci + Instagram'a yonlendirme.
- * Sayac ilanin "ne ise yaradigi"nin tek kaniti — teklifi yukseltmenin gerekcesi.
+ * Tiklama sayaci + ilanin baglantisina yonlendirme (Instagram profili ya da
+ * kendi sitesi). Sayac ilanin "ne ise yaradigi"nin tek kaniti — teklifi
+ * yukseltmenin gerekcesi.
  */
 export async function GET(req: Request, ctx: RouteContext<'/git/[id]'>) {
   const { id } = await ctx.params
 
   const listing = await prisma.listing.findUnique({
     where: { id },
-    select: { id: true, handle: true },
+    select: { id: true, url: true },
   })
   if (!listing) return NextResponse.redirect(new URL('/', req.url))
 
@@ -34,5 +35,5 @@ export async function GET(req: Request, ctx: RouteContext<'/git/[id]'>) {
     /* yut */
   }
 
-  return NextResponse.redirect(`https://instagram.com/${listing.handle}`)
+  return NextResponse.redirect(listing.url)
 }

@@ -1,5 +1,6 @@
 import { prisma } from './prisma'
 import { CITIES } from './cities'
+import { linkLabel } from './links'
 
 // Sira kurali TEK YERDE: currentBid DESC, firstBidAt ASC (esitlikte eski teklif ustte).
 const SIRALAMA = [{ currentBid: 'desc' as const }, { firstBidAt: 'asc' as const }]
@@ -10,7 +11,8 @@ const YAYINDA = { currentBid: { gt: 0 } }
 export type Row = {
   id: string
   rank: number
-  handle: string
+  url: string
+  label: string // "@ocakbasivefa" ya da "ocakbasivefa.com"
   name: string
   city: string
   district: string | null
@@ -22,6 +24,34 @@ export type Row = {
   nationalRank?: number
 }
 
+type Kayit = {
+  id: string
+  url: string
+  name: string
+  city: string
+  district: string | null
+  imageUrl: string | null
+  description: string
+  currentBid: number
+  clickCount: number
+}
+
+function toRow(l: Kayit, rank: number): Row {
+  return {
+    id: l.id,
+    rank,
+    url: l.url,
+    label: linkLabel(l.url),
+    name: l.name,
+    city: l.city,
+    district: l.district,
+    imageUrl: l.imageUrl,
+    description: l.description,
+    currentBid: l.currentBid,
+    clickCount: l.clickCount,
+  }
+}
+
 /** Genel liste. Sehir tahtasi da ayni ekonominin suzulmus hali. */
 export async function getBoard(citySlug?: string, take = 50): Promise<Row[]> {
   const listings = await prisma.listing.findMany({
@@ -30,18 +60,7 @@ export async function getBoard(citySlug?: string, take = 50): Promise<Row[]> {
     take,
   })
 
-  const rows: Row[] = listings.map((l, i) => ({
-    id: l.id,
-    rank: i + 1,
-    handle: l.handle,
-    name: l.name,
-    city: l.city,
-    district: l.district,
-    imageUrl: l.imageUrl,
-    description: l.description,
-    currentBid: l.currentBid,
-    clickCount: l.clickCount,
-  }))
+  const rows = listings.map((l, i) => toRow(l, i + 1))
 
   // Sehir tahtasindaysak her ilanin genel sirasini da ekle ("Turkiye 14.")
   if (citySlug && rows.length) {
@@ -59,9 +78,10 @@ async function nationalRanks(ids: string[]): Promise<Map<string, number>> {
     orderBy: SIRALAMA,
     select: { id: true },
   })
+  const istenen = new Set(ids)
   const map = new Map<string, number>()
   all.forEach((l, i) => {
-    if (ids.includes(l.id)) map.set(l.id, i + 1)
+    if (istenen.has(l.id)) map.set(l.id, i + 1)
   })
   return map
 }
@@ -75,7 +95,7 @@ export type Champion = {
 
 /**
  * Sehir Sampiyonlari — 81 ilin 1 numarasi.
- * Bos iller de donuyor: bos kutu "burasi bos, 500 TL'ye senin" davetidir.
+ * Bos iller de donuyor: bos kutu "burasi bos, senin olabilir" davetidir.
  */
 export async function getCityChampions(): Promise<Champion[]> {
   const all = await prisma.listing.findMany({ where: YAYINDA, orderBy: SIRALAMA })
@@ -89,20 +109,7 @@ export async function getCityChampions(): Promise<Champion[]> {
       citySlug: c.slug,
       cityName: c.name,
       plaka: c.plaka,
-      listing: l
-        ? {
-            id: l.id,
-            rank: 1,
-            handle: l.handle,
-            name: l.name,
-            city: l.city,
-            district: l.district,
-            imageUrl: l.imageUrl,
-            description: l.description,
-            currentBid: l.currentBid,
-            clickCount: l.clickCount,
-          }
-        : null,
+      listing: l ? toRow(l, 1) : null,
     }
   })
 }
@@ -110,10 +117,10 @@ export async function getCityChampions(): Promise<Champion[]> {
 export type Activity = {
   id: string
   amount: number
-  handle: string
+  label: string
   name: string
   city: string
-  passedHandle: string | null
+  passedLabel: string | null
   rankAfter: number | null
   createdAt: Date
 }
@@ -124,16 +131,16 @@ export async function getActivity(take = 20): Promise<Activity[]> {
     where: { status: 'PAID' },
     orderBy: { createdAt: 'desc' },
     take,
-    include: { listing: { select: { handle: true, name: true, city: true } } },
+    include: { listing: { select: { url: true, name: true, city: true } } },
   })
 
   return bids.map((b) => ({
     id: b.id,
     amount: b.amount,
-    handle: b.listing.handle,
+    label: linkLabel(b.listing.url),
     name: b.listing.name,
     city: b.listing.city,
-    passedHandle: b.passedHandle,
+    passedLabel: b.passedLabel,
     rankAfter: b.rankAfter,
     createdAt: b.createdAt,
   }))

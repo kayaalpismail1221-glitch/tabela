@@ -1,5 +1,6 @@
 import { prisma } from './prisma'
 import { checkBid } from './rules'
+import { linkLabel } from './links'
 
 /**
  * ODEME HENUZ BAGLI DEGIL.
@@ -49,7 +50,7 @@ export async function placeBid(listingId: string, amount: number): Promise<Place
       currentBid: { gt: listing.currentBid, lt: amount },
     },
     orderBy: { currentBid: 'desc' },
-    select: { handle: true },
+    select: { url: true },
   })
 
   const above = await prisma.listing.count({ where: { currentBid: { gt: amount } } })
@@ -62,7 +63,7 @@ export async function placeBid(listingId: string, amount: number): Promise<Place
         amount,
         paid: check.paid,
         status: TEST_MODU ? 'PAID' : 'PENDING',
-        passedHandle: passed?.handle ?? null,
+        passedLabel: passed ? linkLabel(passed.url) : null,
         rankAfter: rank,
       },
     })

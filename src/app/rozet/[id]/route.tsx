@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { prisma } from '@/lib/prisma'
 import { cityName } from '@/lib/cities'
+import { linkLabel } from '@/lib/links'
 import { tl } from '@/lib/format'
 
 export const dynamic = 'force-dynamic'
@@ -125,7 +126,7 @@ export async function GET(req: Request, ctx: RouteContext<'/rozet/[id]'>) {
           </div>
 
           <div style={{ display: 'flex', fontSize: 46, color: '#8e8e99', marginTop: 20 }}>
-            @{listing.handle}
+            {linkLabel(listing.url)}
           </div>
 
           <div style={{ display: 'flex', fontSize: 40, color: '#f4f4f5', marginTop: 46 }}>

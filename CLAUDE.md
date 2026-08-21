@@ -45,6 +45,7 @@ tek şey bu ucuz zafer.
 | `src/lib/bids.ts` | Teklif uygulama + ödeme kesme noktası |
 | `src/lib/board.ts` | Sıralama sorguları (sıra kuralı tek yerde) |
 | `src/lib/cities.ts` | 81 il, plaka sırasında |
+| `src/lib/links.ts` | Bağlantı çözümleme — Instagram mı site mi, tek yerde |
 | `public/fonts/` | Inter woff dosyaları — **sadece rozet için** |
 
 ## Değişmez kurallar
@@ -60,9 +61,9 @@ tek şey bu ucuz zafer.
 ## ⏳ Açık işler
 
 ### 1. Fiyat bandı yer tutucu
-`src/lib/rules.ts` içindeki üç rakam (taban 500 ₺, min artış 50 ₺, zirve farkı
-500 ₺) **uydurma**. Gerçek değer restoran görüşmelerinden çıkacak. Tek dosya,
-tek değişiklik.
+`src/lib/rules.ts` içindeki üç rakam (taban 100 ₺, min artış 25 ₺, zirve farkı
+100 ₺) **uydurma**. Taban kullanıcı kararı (2026-08-21); diğer ikisi ona oranla
+seçildi. Gerçek değer restoran görüşmelerinden çıkacak. Tek dosya, tek değişiklik.
 
 ### 2. Ödeme bağlı değil
 `PAYMENT_MODE !== 'live'` iken teklifler anında PAID sayılıyor (`src/lib/bids.ts`).
@@ -71,10 +72,17 @@ Canlıya almak için:
 - `placeBid` PENDING yazsın → ödeme sağlayıcısı → webhook → `applyPaidBid`
 - `applyPaidBid` zaten ayrı ve idempotent duruyor, webhook'u ona bağlamak yeterli
 
-### 3. Instagram doğrulaması yarım
-`Listing.verifyCode` üretiliyor ve saklanıyor ama **zorunlu tutulmuyor**.
-Canlıya almadan önce: kullanıcı kodu bio'ya koyar → doğrula → `verifiedAt`.
-Graph API rastgele hesabın verisini vermez; scraping'e girme.
+### 3. Sahiplik doğrulaması YOK — bilinçli karar (2026-08-21)
+İlan verirken hesap sahipliği doğrulanmıyor, sürtünmeyi kaldırmak için.
+**Açık risk:** biri rakibinin mekânını tahtaya çıkarabilir ya da bir hesabı
+işgal edebilir. Tek fren, ilanın paralı olması. Şikâyet gelirse elle indirme
+yolu gerekecek — henüz yok.
+
+Bağlantı Instagram profili **ya da** kendi sitesi olabilir; tür adresten
+çıkarılıyor (`src/lib/links.ts`), kullanıcıya tür seçtirilmiyor. Aynı adres iki
+kez tahtaya çıkamaz (`Listing.url` unique). Instagram bağlantısı mobilde
+uygulamayı açar, açamazsa web'e düşer — bu tarayıcının işi, kodda özel bir şey
+yok.
 
 ### 4. "Üste çıkıldın" bildirimi yok
 Tekrar gelirin motoru bu. Mail + WhatsApp. Şu an sadece akışta görünüyor.

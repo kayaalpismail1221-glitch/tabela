@@ -16,17 +16,17 @@ datasource db {
 }
 
 model Listing {
-  id          String    @id @default(cuid())
-  handle      String    @unique // instagram kullanici adi, @ olmadan
-  name        String
+  id   String @id @default(cuid())
+  name String
+
+  // Tek baglanti: Instagram profili VEYA kendi sitesi. Tur adresten cikariliyor
+  // (src/lib/links.ts). Ayni adres iki kez tahtaya cikamaz.
+  url String @unique
+
   city        String // il slug: "istanbul"
   district    String? // ilce, opsiyonel
   imageUrl    String?
   description String
-
-  // Instagram sahiplik dogrulamasi: bio'ya kod koyup dogrular
-  verifyCode String?
-  verifiedAt DateTime?
 
   // Sira = currentBid DESC, firstBidAt ASC (esitlikte eski teklif ustte)
   currentBid Int       @default(0) // kurus
@@ -54,8 +54,8 @@ model Bid {
   status     String  @default("PENDING") // PENDING | PAID | FAILED
   paymentRef String?
 
-  // Aktivite akisi icin: bu teklif kimi geride birakti
-  passedHandle String?
+  // Aktivite akisi icin: bu teklif kimi geride birakti (gorunen ad)
+  passedLabel String?
   rankAfter    Int? // teklif gecerli oldugunda olusan genel sira
 
   createdAt DateTime @default(now())

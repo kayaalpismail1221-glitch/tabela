@@ -62,14 +62,14 @@ export default async function CityPage({ params }: PageProps<'/[sehir]'>) {
           href={`/ilan/${champ.id}`}
           className="mt-8 flex items-center gap-4 rounded-2xl border border-neon/40 bg-gradient-to-br from-surface-2 to-surface p-5 transition hover:border-neon"
         >
-          <Avatar seed={champ.handle} label={champ.name} size={56} imageUrl={champ.imageUrl} />
+          <Avatar seed={champ.url} label={champ.name} size={56} imageUrl={champ.imageUrl} />
           <div className="min-w-0 flex-1">
             <div className="text-[11px] font-bold uppercase tracking-widest text-neon">
               {city.name} 1 numara
             </div>
             <div className="truncate text-xl font-black">{champ.name}</div>
             <div className="truncate text-sm text-muted">
-              @{champ.handle}
+              {champ.label}
               {champ.nationalRank ? ` · Türkiye ${champ.nationalRank}.` : ''}
             </div>
           </div>
