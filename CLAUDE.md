@@ -46,6 +46,7 @@ tek şey bu ucuz zafer.
 | `src/lib/rules.ts` | **Teklif kuralları — tek kaynak** |
 | `src/lib/bids.ts` | Teklif uygulama + ödeme kesme noktası |
 | `src/lib/board.ts` | Sıralama sorguları (sıra kuralı tek yerde) |
+| `src/lib/db-url.ts` | Baglanti dizesi degisken adi cozumleme — tek yer |
 | `src/lib/cities.ts` | 81 il, plaka sırasında |
 | `src/lib/links.ts` | Bağlantı çözümleme — Instagram mı site mi, tek yerde |
 | `public/fonts/` | Inter woff dosyaları — **sadece rozet için** |
@@ -116,13 +117,24 @@ yüzden `prisma/schema.prisma` içinde `directUrl` tanımlı değil. Neon/Supaba
 gibi havuzlu–havuzsuz ayrımı olan bir sağlayıcıya geçilirse o satır geri eklenir
 ve `DATABASE_URL_UNPOOLED` gerekir.
 
-Vercel entegrasyonu aynı değeri üç isimle yazıyor: `DATABASE_URL`,
-`POSTGRES_URL`, `PRISMA_DATABASE_URL`. **Kod yalnızca `DATABASE_URL` okur**;
-diğer ikisi başka araçların beklediği takma isimler, silinmeleri de gerekmez.
+**Değişken adı sabit değil — `src/lib/db-url.ts` tek kaynak.** Vercel'de projede
+zaten bir `DATABASE_URL` bulunduğu için entegrasyon kendi değişkenlerine
+`DATABASE_URL` prefix'i ekledi ve ortaya `DATABASE_URL_DATABASE_URL`,
+`DATABASE_URL_POSTGRES_URL`, `DATABASE_URL_PRISMA_DATABASE_URL` çıktı.
+
+Kod bu tuhaf isme sabitlenmedi: `resolveDbUrl()` bilinen adayları sırayla
+deniyor ve ilk geçerli `postgres://` dizesini `PrismaClient`'a **elden**
+veriyor (`src/lib/prisma.ts`). Prefix kaldırılsa ya da sağlayıcı değişse kod
+değişmiyor. Boş veya postgres olmayan değerler atlanıyor ki projede kalmış
+eski bir `DATABASE_URL` doğrusunun önünü tıkamasın.
+
+Şemadaki `env("DATABASE_URL")` yalnızca `prisma db push` gibi **CLI** komutları
+için geçerli; onlar lokalde `.env`den okuyor.
 
 Kurulum takılırsa `GET /api/health` hangi aşamada olduğunu söyler:
-`DB_YOK` → `BAGLANTI_YOK` → `SEMA_YOK` → `TAMAM`. Değer döndürmez, yalnızca
-"tanımlı mı" + Prisma hata kodu.
+`DB_YOK` → `BAGLANTI_YOK` → `SEMA_YOK` → `TAMAM`. Ayrıca **hangi değişkenden**
+okuduğunu (`dbDegiskeni`) yazar. Değer döndürmez, yalnızca isim + Prisma hata
+kodu.
 
 **Lokalde çalıştırmak için** aynı URL'i `.env` içine koy, sonra
 `npm run db:push`. Postgres olmadan uygulama açılmaz.

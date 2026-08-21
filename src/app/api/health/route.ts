@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { resolveDbUrl, dbUrlAdaylari } from '@/lib/db-url'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,17 +12,23 @@ export const dynamic = 'force-dynamic'
  * Prisma'nin hata KODU. Baglanti dizesi, parola, anahtar sizmaz.
  */
 export async function GET() {
+  const cozulen = resolveDbUrl()
+
   const env = {
-    DATABASE_URL: Boolean(process.env.DATABASE_URL),
+    // Hangi degiskenden okundugu — degeri degil, yalnizca ADI.
+    dbDegiskeni: cozulen?.name ?? null,
+    tanimliAdaylar: dbUrlAdaylari(),
     PAYMENT_MODE: process.env.PAYMENT_MODE ?? '(tanimsiz — test sayilir)',
     IYZICO: Boolean(process.env.IYZICO_API_KEY && process.env.IYZICO_SECRET_KEY),
   }
 
-  if (!env.DATABASE_URL) {
+  if (!cozulen) {
     return NextResponse.json(
       {
         durum: 'DB_YOK',
-        aciklama: 'DATABASE_URL tanimli degil. Vercel > Storage > veritabani baglanmali.',
+        aciklama:
+          'Postgres baglanti dizesi bulunamadi. Vercel > Settings > Environment Variables ' +
+          'icinde DATABASE_URL (ya da entegrasyonun urettigi bir varyanti) tanimli olmali.',
         env,
       },
       { status: 503 }
