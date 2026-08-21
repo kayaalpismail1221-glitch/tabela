@@ -107,19 +107,29 @@ Tekrar gelirin motoru bu. Mail + WhatsApp. Şu an sadece akışta görünüyor.
 `Delivery` modeli duruyor ama yazan yok. Satışın karşılığı olan story/post'un
 kanıtı orada tutulacak.
 
-### 6. Veritabanı Postgres — lokalde de aynısı
-SQLite'tan çıkıldı (2026-08-21). `DATABASE_URL` (havuzlanmış) +
-`DATABASE_URL_UNPOOLED` (havuzsuz, `db push` için) gerekiyor. **İsimler
-bilerek Neon'un ürettiği isimler** — Vercel'de elle env eklemek gerekmesin
-diye. Başka bir sağlayıcıya geçilirse `prisma/schema.prisma` içindeki
-`directUrl` satırı değişir.
+### 6. Veritabanı Prisma Postgres
+SQLite'tan çıkıldı (2026-08-21). Sağlayıcı **Prisma Postgres** (`db.prisma.io`),
+Vercel > Storage üzerinden bağlı.
+
+Neon'un aksine **tek bağlantı dizesi** veriyor — ayrı havuzsuz adres yok, bu
+yüzden `prisma/schema.prisma` içinde `directUrl` tanımlı değil. Neon/Supabase
+gibi havuzlu–havuzsuz ayrımı olan bir sağlayıcıya geçilirse o satır geri eklenir
+ve `DATABASE_URL_UNPOOLED` gerekir.
+
+Vercel entegrasyonu aynı değeri üç isimle yazıyor: `DATABASE_URL`,
+`POSTGRES_URL`, `PRISMA_DATABASE_URL`. **Kod yalnızca `DATABASE_URL` okur**;
+diğer ikisi başka araçların beklediği takma isimler, silinmeleri de gerekmez.
 
 Kurulum takılırsa `GET /api/health` hangi aşamada olduğunu söyler:
 `DB_YOK` → `BAGLANTI_YOK` → `SEMA_YOK` → `TAMAM`. Değer döndürmez, yalnızca
 "tanımlı mı" + Prisma hata kodu.
 
-**Lokalde çalıştırmak için** aynı URL'leri `.env`e koy, sonra:
-`npm run db:push && npm run db:seed`. Postgres olmadan uygulama açılmaz.
+**Lokalde çalıştırmak için** aynı URL'i `.env` içine koy, sonra
+`npm run db:push`. Postgres olmadan uygulama açılmaz.
+
+⚠️ Canlı veritabanında şema var ama **0 ilan**. `npm run db:seed` uydurma
+restoran isimleri basar — canlıda çalıştırılıp çalıştırılmayacağı ürün kararı,
+kendiliğinden yapılmadı.
 
 ## Notlar
 

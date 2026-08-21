@@ -13,7 +13,6 @@ export const dynamic = 'force-dynamic'
 export async function GET() {
   const env = {
     DATABASE_URL: Boolean(process.env.DATABASE_URL),
-    DATABASE_URL_UNPOOLED: Boolean(process.env.DATABASE_URL_UNPOOLED),
     PAYMENT_MODE: process.env.PAYMENT_MODE ?? '(tanimsiz — test sayilir)',
     IYZICO: Boolean(process.env.IYZICO_API_KEY && process.env.IYZICO_SECRET_KEY),
   }
@@ -22,7 +21,7 @@ export async function GET() {
     return NextResponse.json(
       {
         durum: 'DB_YOK',
-        aciklama: 'DATABASE_URL tanimli degil. Vercel > Storage > Neon baglanmali.',
+        aciklama: 'DATABASE_URL tanimli degil. Vercel > Storage > veritabani baglanmali.',
         env,
       },
       { status: 503 }

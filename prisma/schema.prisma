@@ -9,11 +9,12 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL") // havuzlanmis baglanti (uygulama)
-  // Neon/Vercel entegrasyonu bu ismi kendisi uretiyor — elle env eklemeye
-  // gerek yok. Baska bir saglayiciya gecerse burasi degisir.
-  directUrl = env("DATABASE_URL_UNPOOLED")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // Prisma Postgres tek bir baglanti dizesi veriyor; Neon'daki gibi ayri bir
+  // havuzsuz adres yok, bu yuzden directUrl tanimli degil. Neon/Supabase gibi
+  // havuzlu-havuzsuz ayrimi olan bir saglayiciya gecilirse buraya
+  // directUrl = env("DATABASE_URL_UNPOOLED") satiri geri eklenir.
 }
 
 model Listing {
