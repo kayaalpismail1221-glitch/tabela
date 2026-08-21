@@ -67,3 +67,15 @@ body {
   background: #ffb020;
   color: #000;
 }
+
+/* Sayi kutusundaki artir/azalt oklari: mobilde yer yiyor, tasarimla uyusmuyor.
+   Tutari klavyeden ya da "1 numara ol" kisayollarindan giriliyor. */
+input[type='number'] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

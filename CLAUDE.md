@@ -41,6 +41,8 @@ tek şey bu ucuz zafer.
 | `src/app/api/listings` | İlan oluştur + ilk teklif |
 | `src/app/api/bids` | Teklif yükselt |
 | `src/app/api/activity` | Canlı çekişme akışı (8 sn yoklama) |
+| `src/app/api/rank` | "Bu parayı verirsem kaçıncı olurum?" — canlı sıra önizlemesi |
+| `src/components/RankPreview.tsx` | O önizlemenin arayüzü; hem ilan formunda hem teklif yükseltmede |
 | `src/lib/rules.ts` | **Teklif kuralları — tek kaynak** |
 | `src/lib/bids.ts` | Teklif uygulama + ödeme kesme noktası |
 | `src/lib/board.ts` | Sıralama sorguları (sıra kuralı tek yerde) |

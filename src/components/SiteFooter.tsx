@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-line bg-surface/40">
+    <footer className="mt-16 border-t border-line bg-surface/40 sm:mt-24">
       <div className="mx-auto max-w-6xl px-4 py-10 text-sm text-muted">
         {/* Reklam Kurulu sarti: parali siralama acikca beyan edilmeli. */}
         <p className="rounded-lg border border-line bg-surface px-4 py-3 text-text">

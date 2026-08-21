@@ -3,17 +3,19 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { tl } from '@/lib/format'
+import { MIN_ARTIS } from '@/lib/rules'
+import { RankPreview } from './RankPreview'
 
 export function BidForm({
   listingId,
+  city,
   current,
   minimum,
-  firstPlace,
 }: {
   listingId: string
+  city: string
   current: number
   minimum: number
-  firstPlace: number
 }) {
   const router = useRouter()
   const [lira, setLira] = useState(String(Math.ceil(minimum / 100)))
@@ -44,43 +46,42 @@ export function BidForm({
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-wrap items-start gap-3">
-      <div className="flex-1 min-w-[12rem]">
-        <div className="flex items-center rounded-xl border border-line bg-ink px-3 focus-within:border-neon">
-          <input
-            type="number"
-            inputMode="numeric"
-            value={lira}
-            min={Math.ceil(minimum / 100)}
-            step={50}
-            onChange={(e) => setLira(e.target.value)}
-            className="w-full bg-transparent py-3 text-lg font-bold tabular-nums outline-none"
-          />
-          <span className="pl-2 text-muted">₺</span>
-        </div>
-        <p className="mt-1.5 text-xs text-muted">
-          En az {tl(minimum)} · şu an ödeyeceğin fark:{' '}
-          <strong className="text-text">{fark > 0 ? tl(fark) : '—'}</strong>
-        </p>
-        {error && <p className="mt-1.5 text-xs text-hot">{error}</p>}
+    <form onSubmit={submit}>
+      <div className="flex items-center rounded-xl border border-line bg-ink px-3 focus-within:border-neon">
+        <input
+          type="number"
+          inputMode="numeric"
+          value={lira}
+          min={Math.ceil(minimum / 100)}
+          step={MIN_ARTIS / 100}
+          onChange={(e) => setLira(e.target.value)}
+          className="w-full min-w-0 bg-transparent py-3 text-lg font-bold tabular-nums outline-none"
+        />
+        <span className="pl-2 text-muted">₺</span>
       </div>
 
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => setLira(String(Math.ceil(firstPlace / 100)))}
-          className="rounded-xl border border-line px-4 py-3 text-sm font-bold transition hover:border-neon/60"
-        >
-          1 numara ol
-        </button>
-        <button
-          type="submit"
-          disabled={busy || amount <= current}
-          className="rounded-xl bg-neon px-6 py-3 font-bold text-ink transition hover:brightness-110 disabled:opacity-40"
-        >
-          {busy ? 'Gönderiliyor…' : 'Teklif ver'}
-        </button>
-      </div>
+      <p className="mt-1.5 text-xs text-muted">
+        En az {tl(minimum)} · şu an ödeyeceğin fark:{' '}
+        <strong className="text-text">{fark > 0 ? tl(fark) : '—'}</strong>
+      </p>
+
+      {/* Yukseltmenin karsiligini once goster, sonra parayi iste */}
+      <RankPreview
+        amount={amount}
+        city={city}
+        exclude={listingId}
+        onPick={(kurus) => setLira(String(Math.ceil(kurus / 100)))}
+      />
+
+      {error && <p className="mt-1.5 text-xs text-hot">{error}</p>}
+
+      <button
+        type="submit"
+        disabled={busy || amount <= current}
+        className="mt-3 w-full rounded-xl bg-neon px-6 py-3 font-bold text-ink transition hover:brightness-110 disabled:opacity-40"
+      >
+        {busy ? 'Gönderiliyor…' : 'Teklif ver'}
+      </button>
     </form>
   )
 }

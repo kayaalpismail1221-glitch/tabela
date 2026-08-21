@@ -98,9 +98,9 @@ export default async function ListingPage({ params }: PageProps<'/ilan/[id]'>) {
           <BidForm
             key={listing.currentBid}
             listingId={listing.id}
+            city={listing.city}
             current={listing.currentBid}
             minimum={suggestedMinimum(listing.currentBid)}
-            firstPlace={priceOfFirstPlace(topBid)}
           />
         </div>
       </section>

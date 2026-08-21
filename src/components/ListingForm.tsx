@@ -4,15 +4,10 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CITIES } from '@/lib/cities'
 import { tl } from '@/lib/format'
-import { TABAN_TEKLIF } from '@/lib/rules'
+import { TABAN_TEKLIF, MIN_ARTIS } from '@/lib/rules'
+import { RankPreview } from './RankPreview'
 
-export function ListingForm({
-  defaultCity = '',
-  firstPlace,
-}: {
-  defaultCity?: string
-  firstPlace: number
-}) {
+export function ListingForm({ defaultCity = '' }: { defaultCity?: string }) {
   const router = useRouter()
   const [link, setLink] = useState('')
   const [name, setName] = useState('')
@@ -53,14 +48,11 @@ export function ListingForm({
 
   return (
     <form onSubmit={submit} className="space-y-5">
-      <Field
-        label="Bağlantın"
-        hint="Instagram profilin ya da kendi siten — hangisini yazarsan tıklayan oraya gider."
-      >
+      <Field label="Bağlantın" hint="Instagram profilin ya da kendi siten — tıklayan oraya gider.">
         <input
           value={link}
           onChange={(e) => setLink(e.target.value)}
-          placeholder="@ocakbasivefa  ya da  ocakbasivefa.com"
+          placeholder="@ocakbasivefa veya siten.com"
           className="w-full rounded-xl border border-line bg-ink px-3 py-3 outline-none focus:border-neon"
         />
       </Field>
@@ -110,23 +102,30 @@ export function ListingForm({
         />
       </Field>
 
-      <Field
-        label="Teklifin"
-        hint={`Taban ${tl(TABAN_TEKLIF)} · Türkiye 1 numarası olmak ${tl(firstPlace)}`}
-      >
-        <div className="flex items-center rounded-xl border border-line bg-ink px-3 focus-within:border-neon">
+      <div>
+        <span className="text-sm font-bold">Teklifin</span>
+        <div className="mt-1.5 flex items-center rounded-xl border border-line bg-ink px-3 focus-within:border-neon">
           <input
             type="number"
             inputMode="numeric"
             value={lira}
             min={TABAN_TEKLIF / 100}
-            step={50}
+            step={MIN_ARTIS / 100}
             onChange={(e) => setLira(e.target.value)}
-            className="w-full bg-transparent py-3 text-lg font-bold tabular-nums outline-none"
+            className="w-full min-w-0 bg-transparent py-3 text-lg font-bold tabular-nums outline-none"
           />
           <span className="pl-2 text-muted">₺</span>
         </div>
-      </Field>
+
+        {/* Kacinci olacagini gormeden kimse ne kadar verecegine karar veremiyor */}
+        <RankPreview
+          amount={amount}
+          city={city || undefined}
+          onPick={(kurus) => setLira(String(Math.ceil(kurus / 100)))}
+        />
+
+        <span className="mt-1.5 block text-xs text-muted">Taban {tl(TABAN_TEKLIF)}.</span>
+      </div>
 
       {error && <p className="text-sm text-hot">{error}</p>}
 

@@ -1,6 +1,5 @@
 import { ListingForm } from '@/components/ListingForm'
-import { getTopBid } from '@/lib/board'
-import { priceOfFirstPlace, TABAN_TEKLIF } from '@/lib/rules'
+import { TABAN_TEKLIF } from '@/lib/rules'
 import { tl } from '@/lib/format'
 import { cityBySlug } from '@/lib/cities'
 
@@ -13,8 +12,6 @@ export default async function IlanVerPage({ searchParams }: PageProps<'/ilan-ver
   const raw = typeof sp.sehir === 'string' ? sp.sehir : ''
   const defaultCity = cityBySlug(raw) ? raw : ''
 
-  const topBid = await getTopBid()
-
   return (
     <div className="mx-auto max-w-xl px-4 py-8 sm:py-12">
       <h1 className="text-3xl font-black sm:text-4xl">Tahtaya çık</h1>
@@ -25,7 +22,7 @@ export default async function IlanVerPage({ searchParams }: PageProps<'/ilan-ver
       </p>
 
       <div className="mt-8">
-        <ListingForm defaultCity={defaultCity} firstPlace={priceOfFirstPlace(topBid)} />
+        <ListingForm defaultCity={defaultCity} />
       </div>
     </div>
   )

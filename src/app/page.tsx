@@ -53,7 +53,7 @@ export default async function HomePage() {
         </dl>
       </section>
 
-      <div className="mt-12 grid gap-6 lg:grid-cols-[1fr_20rem]">
+      <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div>
           {first && <TopSpot row={first} />}
           <div className="mt-4">
