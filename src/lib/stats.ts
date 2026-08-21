@@ -57,14 +57,16 @@ export async function getRakamlar(): Promise<Rakamlar> {
  * bilgisinden turetilen geri dondurulemez bir ozet. Gizlilik metninde
  * anlatilan yontemin aynisi.
  */
-export async function ziyaretKaydet(ip: string, ua: string): Promise<Rakamlar> {
+export async function ziyaretKaydet(ip: string, ua: string, gorunur = true): Promise<Rakamlar> {
   const key = createHash('sha256').update(ip + '|' + ua).digest('hex').slice(0, 32)
 
   try {
     await prisma.visitor.upsert({
       where: { key },
       create: { key },
-      update: { lastSeen: new Date() },
+      // Arka plandaki sekme ziyaretci sayilir ama "su an burada" sayilmaz:
+      // lastSeen yalnizca sekme gorunurken ilerliyor.
+      update: gorunur ? { lastSeen: new Date() } : {},
     })
   } catch {
     // Sayac kritik yol degil; yazilamazsa sayfa yine acilir.

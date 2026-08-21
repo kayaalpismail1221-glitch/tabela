@@ -1,36 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useZiyaretci } from './VisitorProvider'
 
 /**
- * Sayfanin en ustundeki canli serit: su an kac kisi burada, acilistan beri
- * kac ziyaretci geldi. Ayni istek ziyaretciyi de kaydediyor — sayac ile
- * ziyaret tek turda hallolsun diye.
+ * Sayfanin en ustundeki canli serit. Kendi istegini ATMIYOR — sayimi kok
+ * yerlesimdeki VisitorProvider yapiyor, burasi yalnizca gosteriyor.
+ * Ping donene kadar sunucudan gelen deger duruyor, sifir yanip sonmuyor.
  */
 export function LivePill({ aktif, ziyaretci }: { aktif: number; ziyaretci: number }) {
-  const [n, setN] = useState({ aktif, ziyaretci })
-
-  useEffect(() => {
-    let alive = true
-
-    const ping = async () => {
-      try {
-        const res = await fetch('/api/ping', { method: 'POST', cache: 'no-store' })
-        if (!res.ok) return
-        const d = await res.json()
-        if (alive) setN({ aktif: d.aktif, ziyaretci: d.ziyaretci })
-      } catch {
-        // sessiz gec — sayac kritik yol degil
-      }
-    }
-
-    ping()
-    const id = setInterval(ping, 60_000)
-    return () => {
-      alive = false
-      clearInterval(id)
-    }
-  }, [])
+  const canli = useZiyaretci()
+  const n = canli ?? { aktif, ziyaretci }
 
   const sayi = (x: number) => x.toLocaleString('tr-TR')
 

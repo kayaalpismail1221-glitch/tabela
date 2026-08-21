@@ -47,6 +47,7 @@ tek şey bu ucuz zafer.
 | `src/lib/bids.ts` | Teklif uygulama + ödeme kesme noktası |
 | `src/lib/board.ts` | Sıralama sorguları (sıra kuralı tek yerde) |
 | `src/lib/stats.ts` | Tahtanin rakamlari + LANSMAN sabiti — tek kaynak |
+| `src/components/VisitorProvider.tsx` | Ziyaretci sayimi — kok yerlesimde, TUM sayfalarda |
 | `src/lib/legal.ts` | Satici kunyesi + yururluk tarihi — yasal metinlerin tek kaynagi |
 | `src/lib/db-url.ts` | Baglanti dizesi degisken adi cozumleme — tek yer |
 | `src/lib/cities.ts` | 81 il, plaka sırasında |
@@ -158,6 +159,15 @@ restoran isimleri basar — canlıda çalıştırılıp çalıştırılmayacağ�
 kendiliğinden yapılmadı.
 
 ## Notlar
+
+- **Ziyaretçi sayacı yaklaşıktır, bilerek.** Çerez ve oturum yok; anahtar
+  IP + tarayıcı bilgisinin geri döndürülemez özeti. Sonuç: aynı kişi telefon
+  ve bilgisayardan girerse 2 ziyaretçi, aynı ofis ağından aynı tarayıcıyla
+  girenler 1 ziyaretçi sayılır. KVKK metniyle tutarlı olsun diye böyle
+  seçildi. Sayım `VisitorProvider` içinde tek yerde; anasayfa ayrıca sunucu
+  tarafında da kaydediyor ki ilk boyamada "0 kişi" yanıp sönmesin.
+- "Su an burada" = son 5 dakika. Arka plandaki sekme ziyaretçi sayılır ama
+  aktif sayılmaz: `lastSeen` yalnızca sekme görünürken ilerliyor.
 
 - Rozet fontu `public/fonts` altından `fs.readFile` ile okunuyor. `fetch(file://)`
   Node runtime'da çalışmıyor; `public/` her zaman deploy'a dahil olduğu için

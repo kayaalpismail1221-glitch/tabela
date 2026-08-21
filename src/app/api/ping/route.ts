@@ -11,7 +11,10 @@ export async function POST(req: Request) {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'yok'
   const ua = req.headers.get('user-agent') ?? 'yok'
 
-  const r = await ziyaretKaydet(ip, ua)
+  const govde = await req.json().catch(() => ({}) as { gorunur?: boolean })
+  const gorunur = govde?.gorunur !== false
+
+  const r = await ziyaretKaydet(ip, ua, gorunur)
 
   return NextResponse.json(r, { headers: { 'Cache-Control': 'no-store' } })
 }

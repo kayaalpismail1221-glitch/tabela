@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { SiteHeader } from '@/components/SiteHeader'
 import { SiteFooter } from '@/components/SiteFooter'
+import { VisitorProvider } from '@/components/VisitorProvider'
 
 const inter = Inter({
   variable: '--font-inter',
@@ -19,9 +20,12 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="tr" className={`${inter.variable} h-full`}>
       <body className="min-h-full flex flex-col">
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
+        {/* Ziyaretci sayimi burada: hangi sayfa acilirsa acilsin sayilsin */}
+        <VisitorProvider>
+          <SiteHeader />
+          <main className="flex-1">{children}</main>
+          <SiteFooter />
+        </VisitorProvider>
       </body>
     </html>
   )

@@ -6,17 +6,29 @@ import { ActivityFeed } from '@/components/ActivityFeed'
 import { LivePill } from '@/components/LivePill'
 import { ClaimFirst } from '@/components/ClaimFirst'
 import { TotalRaised } from '@/components/TotalRaised'
-import { getRakamlar } from '@/lib/stats'
+import { ziyaretKaydet } from '@/lib/stats'
+import { headers } from 'next/headers'
 import { priceOfFirstPlace } from '@/lib/rules'
 
 export const dynamic = 'force-dynamic'
+
+/**
+ * Ziyaretciyi sunucuda da isaretliyoruz: aksi halde ilk boyamada ziyaret
+ * HENUZ kaydedilmedigi icin "0 kisi burada" gorunup saniye sonra 1'e
+ * sicriyordu — bozuk gibi duruyordu.
+ */
+async function ziyaretiKaydet() {
+  const h = await headers()
+  const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'yok'
+  return ziyaretKaydet(ip, h.get('user-agent') ?? 'yok')
+}
 
 export default async function HomePage() {
   const [rows, champions, activity, rakamlar, topBid] = await Promise.all([
     getBoard(undefined, 50),
     getCityChampions(),
     getActivity(20),
-    getRakamlar(),
+    ziyaretiKaydet(),
     getTopBid(),
   ])
 
