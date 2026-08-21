@@ -46,6 +46,7 @@ tek şey bu ucuz zafer.
 | `src/lib/rules.ts` | **Teklif kuralları — tek kaynak** |
 | `src/lib/bids.ts` | Teklif uygulama + ödeme kesme noktası |
 | `src/lib/board.ts` | Sıralama sorguları (sıra kuralı tek yerde) |
+| `src/lib/stats.ts` | Tahtanin rakamlari + LANSMAN sabiti — tek kaynak |
 | `src/lib/legal.ts` | Satici kunyesi + yururluk tarihi — yasal metinlerin tek kaynagi |
 | `src/lib/db-url.ts` | Baglanti dizesi degisken adi cozumleme — tek yer |
 | `src/lib/cities.ts` | 81 il, plaka sırasında |

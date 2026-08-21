@@ -1,19 +1,21 @@
 import Link from 'next/link'
-import { getBoard, getCityChampions, getActivity, getStats } from '@/lib/board'
+import { getBoard, getCityChampions, getActivity } from '@/lib/board'
 import { Board, TopSpot } from '@/components/Board'
 import { CityChampions } from '@/components/CityChampions'
 import { ActivityFeed } from '@/components/ActivityFeed'
+import { StatStrip, StatSentence } from '@/components/StatStrip'
+import { getRakamlar } from '@/lib/stats'
 import { tl } from '@/lib/format'
 import { TABAN_TEKLIF } from '@/lib/rules'
 
 export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
-  const [rows, champions, activity, stats] = await Promise.all([
+  const [rows, champions, activity, rakamlar] = await Promise.all([
     getBoard(undefined, 50),
     getCityChampions(),
     getActivity(20),
-    getStats(),
+    getRakamlar(),
   ])
 
   const [first, ...rest] = rows
@@ -46,11 +48,7 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <dl className="mx-auto mt-8 grid max-w-lg grid-cols-3 gap-3 text-sm">
-          <Stat label="ilan" value={stats.listings.toLocaleString('tr-TR')} />
-          <Stat label="şehir" value={`${stats.cities} / 81`} />
-          <Stat label="toplam teklif" value={tl(stats.volume)} />
-        </dl>
+        <StatStrip r={rakamlar} />
       </section>
 
       <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -71,15 +69,9 @@ export default async function HomePage() {
       <div className="mt-16">
         <CityChampions champions={champions} />
       </div>
-    </div>
-  )
-}
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-line bg-surface/50 px-3 py-2">
-      <dt className="text-[11px] uppercase tracking-wider text-muted">{label}</dt>
-      <dd className="font-bold tabular-nums">{value}</dd>
+      {/* Rakami saklamak yerine one koymak — 0 TL yaziyorsa 0 TL yazar */}
+      <StatSentence r={rakamlar} />
     </div>
   )
 }

@@ -152,15 +152,4 @@ export async function getTopBid(): Promise<number> {
   return top?.currentBid ?? 0
 }
 
-export async function getStats() {
-  const [count, sum] = await Promise.all([
-    prisma.listing.count({ where: YAYINDA }),
-    prisma.bid.aggregate({ where: { status: 'PAID' }, _sum: { paid: true } }),
-  ])
-  const cities = await prisma.listing.findMany({
-    where: YAYINDA,
-    select: { city: true },
-    distinct: ['city'],
-  })
-  return { listings: count, volume: sum._sum.paid ?? 0, cities: cities.length }
-}
+// getStats buradan tasindi -> src/lib/stats.ts (getRakamlar)

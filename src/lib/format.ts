@@ -1,8 +1,14 @@
 /** Kurus -> "1.250 ₺" */
 export function tl(kurus: number): string {
   const lira = kurus / 100
-  const rounded = Number.isInteger(lira) ? lira : Math.round(lira * 100) / 100
-  return rounded.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + ' ₺'
+  // Kurusluk bir tutar varsa iki hane goster (1.250,50), tam liraysa hic gosterme
+  const kurusluk = !Number.isInteger(lira)
+  return (
+    lira.toLocaleString('tr-TR', {
+      minimumFractionDigits: kurusluk ? 2 : 0,
+      maximumFractionDigits: 2,
+    }) + ' ₺'
+  )
 }
 
 /** ISO hafta anahtari: "2026-W34" — Delivery kayitlari icin. */
