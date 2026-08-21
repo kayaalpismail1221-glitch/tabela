@@ -43,3 +43,6 @@ next-env.d.ts
 # prisma (lokal sqlite)
 prisma/dev.db
 prisma/dev.db-journal
+
+# ornek env dosyasi repoda kalsin (icinde deger yok, sadece anahtar adlari)
+!.env.example
