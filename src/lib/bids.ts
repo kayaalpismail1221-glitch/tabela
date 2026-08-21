@@ -1,24 +1,26 @@
 import { prisma } from './prisma'
 import { checkBid } from './rules'
 import { linkLabel } from './links'
+import { cityName } from './cities'
+import { IYZICO_HAZIR, odemeBaslat } from './iyzico'
 
 /**
- * ODEME HENUZ BAGLI DEGIL.
+ * Odeme kesme noktasi — TEK GIRIS.
  *
- * Tahsilat icin tuzel kisilik + Iyzico/PayTR uye isyeri sart (Stripe Turkiye'yi
- * desteklemiyor). O gelene kadar teklifler TEST MODUNDA aninda PAID sayiliyor.
+ * TEST MODU (`PAYMENT_MODE !== 'live'` ya da Iyzico anahtarlari yok):
+ *   teklif aninda PAID sayilir, para istenmez. Gelistirme icin.
  *
- * Canliya alirken sira:
- *   1. Bid PENDING olarak yazilir
- *   2. Odeme saglayicisina yonlendirilir
- *   3. Webhook PAID'e cevirir ve applyPaidBid cagrilir  <-- tek giris noktasi
+ * CANLI:
+ *   Bid PENDING yazilir -> Iyzico Checkout Form -> kullanici oder ->
+ *   Iyzico callback -> odemeDogrula -> applyPaidBid.
  *
- * applyPaidBid zaten ayri duruyor; webhook'u ona baglamak yeterli olacak.
+ * applyPaidBid tek uygulama noktasidir; callback iki kez gelse de bir kez isler.
  */
-export const TEST_MODU = process.env.PAYMENT_MODE !== 'live'
+export const TEST_MODU = process.env.PAYMENT_MODE !== 'live' || !IYZICO_HAZIR
 
 export type PlaceResult =
-  | { ok: true; listingId: string; bidId: string; paid: number; rank: number }
+  | { ok: true; applied: true; listingId: string; bidId: string; paid: number; rank: number }
+  | { ok: true; applied: false; bidId: string; paid: number; paymentUrl: string }
   | { ok: false; error: string; minimum?: number }
 
 /** Tahtadaki en yuksek teklif. */
@@ -31,11 +33,11 @@ async function topBid(): Promise<number> {
   return top?.currentBid ?? 0
 }
 
-/**
- * Teklif ver / yukselt. Odeme baglaninca bu fonksiyon PENDING kayit uretip
- * donecek; simdilik test modunda dogrudan uyguluyor.
- */
-export async function placeBid(listingId: string, amount: number): Promise<PlaceResult> {
+export async function placeBid(
+  listingId: string,
+  amount: number,
+  ctx?: { ip: string; origin: string }
+): Promise<PlaceResult> {
   const listing = await prisma.listing.findUnique({ where: { id: listingId } })
   if (!listing) return { ok: false, error: 'İlan bulunamadı.' }
 
@@ -56,37 +58,68 @@ export async function placeBid(listingId: string, amount: number): Promise<Place
   const above = await prisma.listing.count({ where: { currentBid: { gt: amount } } })
   const rank = above + 1
 
-  const bid = await prisma.$transaction(async (tx) => {
-    const created = await tx.bid.create({
-      data: {
-        listingId: listing.id,
-        amount,
-        paid: check.paid,
-        status: TEST_MODU ? 'PAID' : 'PENDING',
-        passedLabel: passed ? linkLabel(passed.url) : null,
-        rankAfter: rank,
+  const bid = await prisma.bid.create({
+    data: {
+      listingId: listing.id,
+      amount,
+      paid: check.paid,
+      status: 'PENDING',
+      passedLabel: passed ? linkLabel(passed.url) : null,
+      rankAfter: rank,
+    },
+  })
+
+  if (TEST_MODU) {
+    await applyPaidBid(bid.id)
+    return { ok: true, applied: true, listingId: listing.id, bidId: bid.id, paid: check.paid, rank }
+  }
+
+  // --- Canli: Iyzico odeme formu ---
+  if (!ctx) return { ok: false, error: 'Ödeme başlatılamadı.' }
+
+  try {
+    const res = await odemeBaslat({
+      bidId: bid.id,
+      kurus: check.paid,
+      listingName: listing.name,
+      callbackUrl: `${ctx.origin}/api/iyzico/callback`,
+      alici: {
+        ad: listing.ownerName,
+        email: listing.ownerEmail,
+        telefon: listing.ownerPhone,
+        sehir: cityName(listing.city),
+        ip: ctx.ip,
       },
     })
 
-    if (TEST_MODU) {
-      await tx.listing.update({
-        where: { id: listing.id },
-        data: {
-          currentBid: amount,
-          firstBidAt: listing.firstBidAt ?? new Date(),
-        },
+    if (res.status !== 'success' || !res.paymentPageUrl || !res.token) {
+      await prisma.bid.update({
+        where: { id: bid.id },
+        data: { status: 'FAILED', failureCode: res.errorCode, failureMsg: res.errorMessage },
       })
+      // Ham Iyzico mesajini musteriye gostermiyoruz; sebep kayitta duruyor.
+      return { ok: false, error: 'Ödeme sayfası açılamadı. Kısa süre sonra tekrar deneyin.' }
     }
 
-    return created
-  })
+    await prisma.bid.update({ where: { id: bid.id }, data: { paymentToken: res.token } })
 
-  return { ok: true, listingId: listing.id, bidId: bid.id, paid: check.paid, rank }
+    return { ok: true, applied: false, bidId: bid.id, paid: check.paid, paymentUrl: res.paymentPageUrl }
+  } catch {
+    await prisma.bid.update({
+      where: { id: bid.id },
+      data: { status: 'FAILED', failureCode: 'NETWORK', failureMsg: 'Iyzico erisilemedi' },
+    })
+    return { ok: false, error: 'Ödeme sağlayıcısına ulaşılamadı.' }
+  }
 }
 
 /**
- * Odeme onaylandiginda cagrilacak TEK giris noktasi.
- * (Webhook baglaninca burasi kullanilacak — idempotent tutuldu.)
+ * Odeme onaylandiginda cagrilacak TEK nokta. Idempotent.
+ *
+ * ⚠️ Bilincli kural: para tahsil edildiyse teklif HER ZAMAN uygulanir.
+ * Odeme sirasinda baskasi ayni tutari verip one gectiyse kullanici parasini
+ * bosa vermez — sadece bekledigi siraya degil, tutarinin hak ettigi siraya
+ * oturur (esitlikte once odeyen ustte). Parayi alip hicbir sey vermemek yok.
  */
 export async function applyPaidBid(bidId: string): Promise<void> {
   const bid = await prisma.bid.findUnique({ where: { id: bidId } })
@@ -94,9 +127,11 @@ export async function applyPaidBid(bidId: string): Promise<void> {
 
   await prisma.$transaction(async (tx) => {
     await tx.bid.update({ where: { id: bid.id }, data: { status: 'PAID' } })
+
     const listing = await tx.listing.findUnique({ where: { id: bid.listingId } })
     if (!listing) return
-    // Daha yuksek bir teklif arada gectiyse geri sarma.
+
+    // Arada daha yuksek bir teklif gectiyse geri sarma.
     if (bid.amount > listing.currentBid) {
       await tx.listing.update({
         where: { id: listing.id },

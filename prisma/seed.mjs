@@ -103,6 +103,8 @@ async function main() {
         city: d.city,
         district: d.district,
         description: d.description,
+        ownerName: d.name + " Sahibi",
+        ownerEmail: d.label.replace(/[^a-z0-9]/gi, "").toLowerCase() + "@ornek.test",
         currentBid: d.bid,
         firstBidAt: firstAt,
         clickCount: Math.floor(Math.random() * 900) + 20,

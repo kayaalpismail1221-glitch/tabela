@@ -20,7 +20,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Geçersiz tutar.' }, { status: 400 })
   }
 
-  const result = await placeBid(listingId, amount)
+  const result = await placeBid(listingId, amount, {
+    ip: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '85.34.78.112',
+    origin: new URL(req.url).origin,
+  })
+
   if (!result.ok) {
     return NextResponse.json({ error: result.error, minimum: result.minimum }, { status: 400 })
   }

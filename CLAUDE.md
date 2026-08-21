@@ -67,12 +67,26 @@ tek şey bu ucuz zafer.
 100 ₺) **uydurma**. Taban kullanıcı kararı (2026-08-21); diğer ikisi ona oranla
 seçildi. Gerçek değer restoran görüşmelerinden çıkacak. Tek dosya, tek değişiklik.
 
-### 2. Ödeme bağlı değil
-`PAYMENT_MODE !== 'live'` iken teklifler anında PAID sayılıyor (`src/lib/bids.ts`).
-Canlıya almak için:
-- **Tüzel kişilik** + İyzico/PayTR üye işyeri (Stripe Türkiye'yi desteklemiyor)
-- `placeBid` PENDING yazsın → ödeme sağlayıcısı → webhook → `applyPaidBid`
-- `applyPaidBid` zaten ayrı ve idempotent duruyor, webhook'u ona bağlamak yeterli
+### 2. İyzico yazıldı ama HİÇ ÇALIŞTIRILMADI
+`src/lib/iyzico.ts` + `api/iyzico/callback` duruyor. **Canlı anahtarla tek bir
+kez bile denenmedi** — üye işyeri hesabı yok.
+
+Akış: `placeBid` → Bid PENDING → Checkout Form → kullanıcı öder → İyzico
+callback'e POST eder → `odemeDogrula` (token ile geri sorulur, gelen POST'a
+güvenilmez) → `applyPaidBid`.
+
+Anahtarlar geldiğinde ilk iş: **küçük tutarlı gerçek bir ödeme** ve callback'in
+gerçekten geldiğinin teyidi.
+
+Bilinçli kararlar:
+- **Hosted Checkout Form + 3DS.** Kart bilgisi sunucumuza dokunmuyor → PCI
+  SAQ-A (SAQ-D değil), chargeback sorumluluğu bankada. Culinora'da kendi form +
+  non-3D kaldı çünkü orada çalışan bir akış vardı; burada öyle bir miras yok.
+- **Para tahsil edildiyse teklif her zaman uygulanır.** Ödeme sırasında başkası
+  öne geçtiyse kullanıcı parasını boşa vermez, tutarının hak ettiği sıraya
+  oturur. Parayı alıp hiçbir şey vermemek yok.
+- `identityNumber` sabit gönderiliyor — TCKN toplamıyoruz (KVKK). ⚠️ İyzico
+  fraud skorlamasını etkileyebilir, üye işyeri açılışında sorulmalı.
 
 ### 3. Sahiplik doğrulaması YOK — bilinçli karar (2026-08-21)
 İlan verirken hesap sahipliği doğrulanmıyor, sürtünmeyi kaldırmak için.
@@ -93,10 +107,13 @@ Tekrar gelirin motoru bu. Mail + WhatsApp. Şu an sadece akışta görünüyor.
 `Delivery` modeli duruyor ama yazan yok. Satışın karşılığı olan story/post'un
 kanıtı orada tutulacak.
 
-### 6. Veritabanı SQLite
-Lokal geliştirme için. Prod'a geçerken `prisma/schema.prisma` içinde
-`provider = "postgresql"`. Enum kullanılmadı, String alanlar bilerek seçildi —
-geçiş kırılmasın diye.
+### 6. Veritabanı Postgres — lokalde de aynısı
+SQLite'tan çıkıldı (2026-08-21). `DATABASE_URL` (havuzlanmış) + `DIRECT_URL`
+(havuzsuz, `db push` için) gerekiyor; ikisini de Vercel'in Neon entegrasyonu
+otomatik veriyor.
+
+**Lokalde çalıştırmak için** aynı URL'leri `.env`e koy, sonra:
+`npm run db:push && npm run db:seed`. Postgres olmadan uygulama açılmaz.
 
 ## Notlar
 

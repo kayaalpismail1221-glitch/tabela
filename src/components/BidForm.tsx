@@ -42,6 +42,11 @@ export function BidForm({
       setError(data.minimum ? `${data.error} En az ${tl(data.minimum)}.` : data.error)
       return
     }
+    // Canli modda odeme sayfasina gidiyoruz; test modunda teklif aninda gecerli
+    if (data.paymentUrl) {
+      window.location.href = data.paymentUrl
+      return
+    }
     router.refresh()
   }
 

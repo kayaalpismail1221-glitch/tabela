@@ -2,17 +2,16 @@
 // Genel liste = tum ilanlar teklife gore.
 // Sehir listesi = ayni listenin sehir suzulmus hali.
 //
-// SQLite lokal gelistirme icin. Prod'a gecerken tek satir:
-//   provider = "postgresql"
-// (enum kullanilmadi, String alanlar bilerek secildi ki gecis kirilmasin)
+// Postgres (Neon/Vercel). Enum kullanilmadi, String alanlar bilerek secildi.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // havuzlanmis baglanti (uygulama)
+  directUrl = env("DIRECT_URL") // havuzsuz baglanti (migration/db push)
 }
 
 model Listing {
@@ -27,6 +26,13 @@ model Listing {
   district    String? // ilce, opsiyonel
   imageUrl    String?
   description String
+
+  // Ilan sahibi. Iki isi birden goruyor:
+  //   1) Iyzico alici bilgisi (uydurma veri fraud skorlamasini bozuyor)
+  //   2) "Uste cikildin" bildirimi — tekrar gelirin motoru
+  ownerName  String
+  ownerEmail String
+  ownerPhone String?
 
   // Sira = currentBid DESC, firstBidAt ASC (esitlikte eski teklif ustte)
   currentBid Int       @default(0) // kurus
@@ -51,8 +57,13 @@ model Bid {
   amount Int // teklifin ulastigi toplam tutar (kurus)
   paid   Int // bu islemde tahsil edilen fark (kendi ilanini yukseltirken sadece fark)
 
-  status     String  @default("PENDING") // PENDING | PAID | FAILED
-  paymentRef String?
+  status String @default("PENDING") // PENDING | PAID | FAILED | EXPIRED
+
+  // Iyzico Checkout Form: token bize doner, callback ile ayni kaydi buluruz
+  paymentToken String? @unique
+  paymentRef   String? // Iyzico paymentId (tahsilat gerceklestikten sonra)
+  failureCode  String?
+  failureMsg   String?
 
   // Aktivite akisi icin: bu teklif kimi geride birakti (gorunen ad)
   passedLabel String?
