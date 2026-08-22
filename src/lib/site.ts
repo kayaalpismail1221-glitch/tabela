@@ -4,17 +4,22 @@
  * Mail icindeki baglantilar mutlak olmak zorunda; istek baglami olmayan
  * yerlerden (arka plan gorevi, callback sonrasi) de cagriliyor. Bu yuzden
  * adres istekten degil ortamdan cozuluyor.
- *
- * Sira: elle verilen SITE_URL > Vercel'in production adresi > o anki deploy
- * adresi > lokal. Alan adi degisince yalnizca SITE_URL degisir.
  */
+
+/** Kanonik alan adi. Alan adi degisirse degisecek TEK satir. */
+export const ALAN_ADI = 'https://tabela.lol'
+
 export function siteUrl(): string {
+  // Elle verilen her zaman kazanir (ozel bir ortam, gecici bir alan adi...).
   const acik = process.env.SITE_URL?.trim()
   if (acik) return acik.replace(/\/+$/, '')
 
-  const prod = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim()
-  if (prod) return `https://${prod}`
+  // Production dagitimi HER ZAMAN kendi alan adimizdan konusur. Vercel'in
+  // kendi degiskenine birakmiyoruz: mailden gelen kullanici *.vercel.app
+  // adresine dusmesin, paylasilan baglanti markayi tasisin.
+  if (process.env.VERCEL_ENV === 'production') return ALAN_ADI
 
+  // Onizleme dagitimlari kendi adreslerinde kalsin.
   const deploy = process.env.VERCEL_URL?.trim()
   if (deploy) return `https://${deploy}`
 

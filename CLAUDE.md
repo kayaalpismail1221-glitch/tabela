@@ -8,6 +8,17 @@ uyarlanmış hâli.
 > hukuki kalkan. Bunu "en iyi restoranlar" diye konumlandırmak hem yalan olur
 > hem Reklam Kurulu problemi yaratır.
 
+## Alan adı
+
+**`tabela.lol`** (2026-08-22'de alındı, Vercel production'a bağlandı). Uzantı
+şaka, marka değil: "iddialı olan üstte" göz kırpması. Header'daki rozet
+`TABELA.lol` yazıyor.
+
+Kanonik adres **kodda**: `src/lib/site.ts` → `ALAN_ADI`. Production
+dağıtımında Vercel'in kendi değişkenine bakmıyoruz ki mailden gelen kullanıcı
+`*.vercel.app` adresine düşmesin. `SITE_URL` sadece geçici/özel bir adres
+gerekiyorsa doldurulur, normalde boş kalır.
+
 ## Ürünün tek cümlesi
 
 **Tek ekonomi, iki görünüm.** Tek ilan, tek teklif, tek para.
@@ -47,7 +58,7 @@ tek şey bu ucuz zafer.
 | `src/components/Zafer.tsx` | O ekranın kendisi; rozet + WhatsApp + kopyala |
 | `src/lib/outbid.ts` | **"Üste çıkıldın" bildirimi — döngünün tekrar gelir üreten adımı** |
 | `src/lib/mail.ts` | Resend REST + mail iskeleti (SDK yok, tek POST) |
-| `src/lib/site.ts` | Sitenin kendi adresi — mail bağlantıları için tek kaynak |
+| `src/lib/site.ts` | **Kanonik alan adı (`tabela.lol`)** + mutlak bağlantı — tek kaynak |
 | `src/lib/rules.ts` | **Teklif kuralları — tek kaynak** (`priceToPass` dahil) |
 | `src/lib/bids.ts` | Teklif uygulama + ödeme kesme noktası |
 | `src/lib/board.ts` | Sıralama sorguları (sıra kuralı tek yerde) |

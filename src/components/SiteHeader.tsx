@@ -7,7 +7,7 @@ export function SiteHeader() {
         <Link href="/" className="group flex items-baseline gap-2">
           <span className="neon text-2xl font-black tracking-tight text-neon">TABELA</span>
           <span className="hidden text-[11px] font-medium uppercase tracking-widest text-muted sm:inline">
-            .com.tr
+            .lol
           </span>
         </Link>
 

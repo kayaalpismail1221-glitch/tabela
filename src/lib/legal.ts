@@ -12,7 +12,7 @@ export const SATICI = {
   vergiDairesi: '',
   vergiNo: '',
   telefon: '',
-  eposta: 'merhaba@tabela.com.tr',
+  eposta: 'merhaba@tabela.lol',
 } as const
 
 /** Kunye alanlarindan en az biri bos mu? Sayfalar buna gore uyari gosteriyor. */
