@@ -18,9 +18,6 @@ import { PaymentMarks } from './PaymentMarks'
  * kaliyor. Surtunme, tahtayi bos birakan tek sey.
  */
 
-/** Hazir tutar dugmeleri — taban ve iki basamak ustu. */
-const HIZLI = [TABAN_TEKLIF, TABAN_TEKLIF + 2 * MIN_ARTIS, TABAN_TEKLIF + 6 * MIN_ARTIS]
-
 const EPOSTA = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function ListingForm({
@@ -47,6 +44,17 @@ export function ListingForm({
   const [error, setError] = useState<string | null>(null)
 
   const amount = Math.round(Number(lira) * 100)
+
+  // Hazir tutar dugmeleri: normalde taban + 50/100 ₺ ustu. Ama "Devral"dan
+  // (haritadaki pop-up ya da ilan sayfasindaki devral butonu) gelindiyse
+  // defaultLira o sehri/ilani almaya YETEN minimum tutar — o zaman dugmeler
+  // TABAN_TEKLIF'ten degil bu minimumdan baslamali. Aksi hâlde "100 ₺" gibi
+  // bir dugme, aslinda 350 ₺ gerektiren bir devralmada gecersiz bir teklif
+  // sunardi.
+  const hizliTaban =
+    defaultLira && defaultLira * 100 > TABAN_TEKLIF ? defaultLira * 100 : TABAN_TEKLIF
+  const hizli = [hizliTaban, hizliTaban + MIN_ARTIS, hizliTaban + 2 * MIN_ARTIS]
+
   // Ad + e-posta ZORUNLU: uc bunlarsiz 400 donuyor (odeme alicisi ve bildirim
   // adresi). Kontrol formda olmazsa kullanici dolu bir formu gonderip
   // anlamsiz bir hata aliyor.
@@ -285,7 +293,7 @@ export function ListingForm({
               type="number"
               inputMode="numeric"
               value={lira}
-              min={TABAN_TEKLIF / 100}
+              min={hizliTaban / 100}
               step={MIN_ARTIS / 100}
               onChange={(e) => setLira(e.target.value)}
               className="w-full min-w-0 bg-transparent py-3 text-lg font-bold tabular-nums outline-none"
@@ -293,7 +301,7 @@ export function ListingForm({
             <span className="pl-2 text-muted">₺</span>
           </div>
 
-          {HIZLI.map((k) => (
+          {hizli.map((k) => (
             <button
               key={k}
               type="button"
