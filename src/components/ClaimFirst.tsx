@@ -28,7 +28,7 @@ export function ClaimFirst({
   return (
     <div>
       <h1 className="text-3xl font-black leading-[1.1] sm:text-5xl">
-        Şehrinin ve Türkiye&apos;nin
+        Türkiye&apos;nin ve şehrinin
         <br />
         <span className="neon text-neon">en popüler</span> işletmesi ol
       </h1>
