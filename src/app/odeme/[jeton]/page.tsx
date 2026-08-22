@@ -51,8 +51,8 @@ export default async function OdemePage({ params }: PageProps<'/odeme/[jeton]'>)
     kurus: bid.paid,
     urunAdi: `Tabela ilan teklifi — ${bid.listing.name}`,
     alici: {
-      ad: bid.listing.ownerName,
-      email: bid.listing.ownerEmail,
+      ad: bid.listing.ownerName || 'Tabela Müşterisi',
+      email: bid.listing.ownerEmail || 'musteri@tabela.lol',
       telefon: bid.listing.ownerPhone,
       sehir: bid.listing.city,
     },

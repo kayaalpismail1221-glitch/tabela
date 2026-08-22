@@ -75,12 +75,7 @@ export async function POST(req: Request) {
   if (description.length < 5 || description.length > 90) {
     return NextResponse.json({ error: 'Açıklama 5-90 karakter olmalı.' }, { status: 400 })
   }
-  if (!ownerName || ownerName.length < 2 || ownerName.length > 60) {
-    return NextResponse.json({ error: 'Ad soyad 2-60 karakter olmalı.' }, { status: 400 })
-  }
-  if (!ownerEmail || !EPOSTA.test(ownerEmail)) {
-    return NextResponse.json({ error: 'Geçerli bir e-posta yaz.' }, { status: 400 })
-  }
+
   if (!Number.isInteger(amount) || amount < TABAN_TEKLIF) {
     return NextResponse.json({ error: 'Teklif taban tutarın altında.' }, { status: 400 })
   }
