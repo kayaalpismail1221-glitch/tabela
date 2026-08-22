@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { cityName } from '@/lib/cities'
 import { parseLink } from '@/lib/links'
 import { tl, since, tahtSozu } from '@/lib/format'
-import { suggestedMinimum, priceOfFirstPlace } from '@/lib/rules'
+import { suggestedMinimum, priceOfFirstPlace, priceToPass } from '@/lib/rules'
 import { Avatar } from '@/components/Avatar'
 import { BidForm } from '@/components/BidForm'
 import { Zafer } from '@/components/Zafer'
@@ -53,6 +53,9 @@ export default async function ListingPage({ params, searchParams }: PageProps<'/
     Number.isFinite(geriAlLira) && geriAlLira > 0 ? Math.round(geriAlLira) * 100 : null
 
   const odeme = typeof sp.odeme === 'string' ? sp.odeme : null
+
+  // Bu ilani gecmenin bedeli — YENI bir ilan icin (kendi teklifi 0).
+  const devralmaBedeli = priceToPass(listing.currentBid, 0, topBid)
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
@@ -130,36 +133,65 @@ export default async function ListingPage({ params, searchParams }: PageProps<'/
         </a>
       </div>
 
-      <section className="mt-10 rounded-2xl border border-line bg-surface/40 p-5">
-        <h2 className="text-lg font-black">Teklifi yükselt</h2>
+      {/* DEVRAL — ziyaretcinin buradaki isi bu.
+          Giris olmadigi icin "Teklifi yukselt" kutusu herkese aciktir ve o
+          hâliyle yanlis calisiyordu: yabanci odedigi zaman ILANIN SAHIBI
+          yukseliyordu, yani insanlar baskasi icin para veriyordu. Artik
+          ziyaretcinin gordugu sey gecmek; yukseltme kutusu sahibinin. */}
+      <section className="mt-10 rounded-2xl border border-neon/40 bg-surface/40 p-5">
+        <h2 className="text-lg font-black">Bu ilanı devral</h2>
         <p className="mt-1 text-sm text-muted">
-          Yatırdığın <strong className="text-text">{tl(listing.currentBid)}</strong> duruyor; sadece{' '}
-          <strong className="text-text">farkı</strong> ödersin.
-          {/* Zaten 1 numaraysa "1 numarayi al" demek sacma — yalniz altindakilere */}
-          {nationalRank > 1 && priceOfFirstPlace(topBid) > listing.currentBid && (
-            <>
-              {' '}
-              1 numarayı almak için ek{' '}
-              <strong className="text-neon">
-                {tl(priceOfFirstPlace(topBid) - listing.currentBid)}
-              </strong>{' '}
-              yeter.
-            </>
-          )}
+          <strong className="text-text">{listing.name}</strong> şu an{' '}
+          <strong className="text-text">{tl(listing.currentBid)}</strong> ile{' '}
+          {cityName(listing.city)} {cityRank}. sırada. Geçmek için kendi ilanını{' '}
+          <strong className="text-neon">{tl(devralmaBedeli)}</strong> ile ver — sıra senin olur,
+          bağlantı senin işletmene gider.
         </p>
-        <div className="mt-4">
-          {/* key: teklif degisince form yeniden kurulsun, kutuda eski (artik
-              gecersiz) tutar kalmasin */}
-          <BidForm
-            key={`${listing.currentBid}-${baslangic ?? ''}`}
-            listingId={listing.id}
-            city={listing.city}
-            current={listing.currentBid}
-            minimum={suggestedMinimum(listing.currentBid)}
-            baslangic={baslangic}
-            iletisimGerekli={!listing.ownerEmail}
-          />
-        </div>
+
+        <Link
+          href={`/ilan-ver?sehir=${listing.city}&teklif=${Math.ceil(devralmaBedeli / 100)}`}
+          className="mt-4 inline-block rounded-xl bg-neon px-6 py-3 font-black text-ink transition hover:brightness-110"
+        >
+          Devral · {tl(devralmaBedeli)}
+        </Link>
+
+        {/* Sahibin kutusu kapali duruyor: varsayilan ziyaretci, sahip degil. */}
+        <details className="mt-5 border-t border-line pt-4">
+          <summary className="cursor-pointer text-sm font-bold text-muted hover:text-text">
+            Bu ilan benim, teklifimi yükselteceğim
+          </summary>
+
+          <p className="mt-3 text-sm text-muted">
+            Yatırdığın <strong className="text-text">{tl(listing.currentBid)}</strong> duruyor;
+            sadece <strong className="text-text">farkı</strong> ödersin.
+            {/* Zaten 1 numaraysa "1 numarayi al" demek sacma — yalniz altindakilere */}
+            {nationalRank > 1 && priceOfFirstPlace(topBid) > listing.currentBid && (
+              <>
+                {' '}
+                1 numarayı almak için ek{' '}
+                <strong className="text-neon">
+                  {tl(priceOfFirstPlace(topBid) - listing.currentBid)}
+                </strong>{' '}
+                yeter.
+              </>
+            )}
+          </p>
+
+          <div className="mt-4">
+            {/* key: teklif degisince form yeniden kurulsun, kutuda eski (artik
+                gecersiz) tutar kalmasin */}
+            <BidForm
+              key={`${listing.currentBid}-${baslangic ?? ''}`}
+              listingId={listing.id}
+              city={listing.city}
+              current={listing.currentBid}
+              minimum={suggestedMinimum(listing.currentBid)}
+              baslangic={baslangic}
+              iletisimGerekli={!listing.ownerEmail}
+              sahiplikGerekli={Boolean(listing.ownerEmail)}
+            />
+          </div>
+        </details>
       </section>
 
       <section className="mt-10">

@@ -14,6 +14,7 @@ export function BidForm({
   minimum,
   baslangic = null,
   iletisimGerekli = false,
+  sahiplikGerekli = false,
 }: {
   listingId: string
   city: string
@@ -23,6 +24,8 @@ export function BidForm({
   baslangic?: number | null
   /** Ilanda kayitli e-posta yoksa burada toplaniyor — odeme ve bildirim buna bagli. */
   iletisimGerekli?: boolean
+  /** Ilanda e-posta VARSA sahiplik kaniti isteniyor: giris yok, kanit o e-posta. */
+  sahiplikGerekli?: boolean
 }) {
   const router = useRouter()
   const [lira, setLira] = useState(String(Math.ceil(Math.max(baslangic ?? 0, minimum) / 100)))
@@ -114,13 +117,31 @@ export function BidForm({
         </div>
       )}
 
+      {/* Giris yok; sahiplik kaniti ilani verirken kullanilan e-posta. */}
+      {sahiplikGerekli && (
+        <div className="mt-3">
+          <input
+            value={ownerEmail}
+            onChange={(e) => setOwnerEmail(e.target.value)}
+            placeholder="İlanı verirken kullandığın e-posta"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            className="w-full rounded-xl border border-line bg-ink px-3 py-2.5 text-sm outline-none focus:border-neon"
+          />
+          <p className="mt-1 text-xs text-muted">
+            Başkasının ilanını yükseltmeyesin diye soruyoruz. Tahtada görünmez.
+          </p>
+        </div>
+      )}
+
       {error && <p className="mt-1.5 text-xs text-hot">{error}</p>}
 
       <PaymentMarks className="mt-3" />
 
       <button
         type="submit"
-        disabled={busy || amount <= current}
+        disabled={busy || amount <= current || (sahiplikGerekli && !ownerEmail.trim())}
         className="mt-3 w-full rounded-xl bg-neon px-6 py-3 font-bold text-ink transition hover:brightness-110 disabled:opacity-40"
       >
         {busy ? 'Gönderiliyor…' : 'Teklif ver'}

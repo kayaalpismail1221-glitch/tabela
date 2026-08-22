@@ -29,17 +29,36 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Geçersiz tutar.' }, { status: 400 })
   }
 
-  // Iletisimi olmayan ilan (eski kayit ya da yarim kalmis olusturma) teklif
-  // yukseltirken bilgisini tamamliyor: odeme de bildirim de buna bagli.
   const ilan = await prisma.listing.findUnique({
     where: { id: listingId },
     select: { ownerName: true, ownerEmail: true },
   })
   if (!ilan) return NextResponse.json({ error: 'İlan bulunamadı.' }, { status: 404 })
 
-  if (!ilan.ownerName || !ilan.ownerEmail) {
+  const eposta = (body.ownerEmail ?? '').trim().toLowerCase()
+
+  if (ilan.ownerEmail) {
+    // SAHIPLIK KAPISI. Giris yok, o yuzden kanit ilani verirken kullanilan
+    // e-posta. Onsuz bu uc "herkesin yerine odeme yapma" ucu olurdu: bir
+    // yabanci baskasinin ilanini yukseltip parayi bosa verirdi.
+    //
+    // Yabanciyi engellemek amac degil — yabancinin YAPMASI GEREKEN sey bu
+    // degil. O, kendi ilaniyla bu ilani geciyor (ilan sayfasindaki "Devral").
+    if (eposta !== ilan.ownerEmail.toLowerCase()) {
+      return NextResponse.json(
+        {
+          error: 'Bu ilan sana ait değil. İlanı verirken kullandığın e-postayı yaz.',
+          sahiplikGerekli: true,
+        },
+        { status: 403 }
+      )
+    }
+  } else {
+    // Iletisimi olmayan eski/yarim kayit: ilk yukseltmede tamamlaniyor.
+    // ⚠️ Bu ayni zamanda bir sahiplenme deligi — e-postasi olmayan bir ilani
+    // ilk yukselten kisi sahibi olur. Yeni ilanlar her zaman e-posta ile
+    // olusuyor, delik yalnizca yarim kalmis kayitlar icin acik.
     const ad = (body.ownerName ?? '').trim()
-    const eposta = (body.ownerEmail ?? '').trim().toLowerCase()
     const telefon = (body.ownerPhone ?? '').trim() || null
 
     if (ad.length < 2 || !EPOSTA.test(eposta)) {

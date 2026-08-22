@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { CITIES } from '@/lib/cities'
 import { tl } from '@/lib/format'
 import { TABAN_TEKLIF, MIN_ARTIS } from '@/lib/rules'
+import { gorselKucult } from '@/lib/gorselKucult'
 import { RankPreview } from './RankPreview'
 import { PaymentMarks } from './PaymentMarks'
 
@@ -32,13 +33,11 @@ export function ListingForm({
   const [link, setLink] = useState('')
   const [name, setName] = useState('')
   const [city, setCity] = useState(defaultCity)
-  const [district, setDistrict] = useState('')
   const [description, setDescription] = useState('')
   const [logo, setLogo] = useState<string | null>(null) // cekilen amblem (data URI)
   const [logoUrl, setLogoUrl] = useState('') // elle yapistirilan adres
   const [ownerName, setOwnerName] = useState('')
   const [ownerEmail, setOwnerEmail] = useState('')
-  const [ownerPhone, setOwnerPhone] = useState('')
   const [lira, setLira] = useState(String(defaultLira ?? TABAN_TEKLIF / 100))
   const [cekiliyor, setCekiliyor] = useState(false)
   const [cekmeNotu, setCekmeNotu] = useState<string | null>(null)
@@ -46,11 +45,16 @@ export function ListingForm({
   const [error, setError] = useState<string | null>(null)
 
   const amount = Math.round(Number(lira) * 100)
+  // Ad + e-posta ZORUNLU: uc bunlarsiz 400 donuyor (odeme alicisi ve bildirim
+  // adresi). Kontrol formda olmazsa kullanici dolu bir formu gonderip
+  // anlamsiz bir hata aliyor.
   const gecerli =
     link.trim().length >= 2 &&
     name.trim().length >= 2 &&
     city !== '' &&
     description.trim().length >= 5 &&
+    ownerName.trim().length >= 2 &&
+    EPOSTA.test(ownerEmail.trim()) &&
     amount >= TABAN_TEKLIF
 
   /** Adresten ad/aciklama/logo cek. Bulunamayan alan kullanicinin yazdigi gibi kalir. */
@@ -96,13 +100,11 @@ export function ListingForm({
         link,
         name,
         city,
-        district,
         description,
         imageUrl: logo,
         logoUrl,
         ownerName,
         ownerEmail,
-        ownerPhone,
         amount,
       }),
     })
@@ -186,16 +188,17 @@ export function ListingForm({
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={(e) => {
+            onChange={async (e) => {
               const file = e.target.files?.[0]
               if (!file) return
-              const reader = new FileReader()
-              reader.onload = () => {
-                const result = reader.result as string
-                setLogo(result)
+              // Ham fotograf 2-5 MB; sunucudaki amblem siniri 80 KB. Kucultmeden
+              // gonderirsek kullanici sebebini anlamadan logosuz kaliyor.
+              try {
+                setLogo(await gorselKucult(file))
                 setLogoUrl('')
+              } catch {
+                setCekmeNotu('Fotoğraf okunamadı, başka bir dosya dene.')
               }
-              reader.readAsDataURL(file)
             }}
           />
         </label>
