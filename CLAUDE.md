@@ -43,7 +43,12 @@ tek şey bu ucuz zafer.
 | `src/app/api/activity` | Canlı çekişme akışı (8 sn yoklama) |
 | `src/app/api/rank` | "Bu parayı verirsem kaçıncı olurum?" — canlı sıra önizlemesi |
 | `src/components/RankPreview.tsx` | O önizlemenin arayüzü; hem ilan formunda hem teklif yükseltmede |
-| `src/lib/rules.ts` | **Teklif kuralları — tek kaynak** |
+| `src/app/ilan/[id]/?zafer=<bidId>` | **Zafer ekranı** — teklif geçtikten sonraki paylaşım anı |
+| `src/components/Zafer.tsx` | O ekranın kendisi; rozet + WhatsApp + kopyala |
+| `src/lib/outbid.ts` | **"Üste çıkıldın" bildirimi — döngünün tekrar gelir üreten adımı** |
+| `src/lib/mail.ts` | Resend REST + mail iskeleti (SDK yok, tek POST) |
+| `src/lib/site.ts` | Sitenin kendi adresi — mail bağlantıları için tek kaynak |
+| `src/lib/rules.ts` | **Teklif kuralları — tek kaynak** (`priceToPass` dahil) |
 | `src/lib/bids.ts` | Teklif uygulama + ödeme kesme noktası |
 | `src/lib/board.ts` | Sıralama sorguları (sıra kuralı tek yerde) |
 | `src/lib/stats.ts` | Tahtanin rakamlari + LANSMAN sabiti — tek kaynak |
@@ -54,6 +59,36 @@ tek şey bu ucuz zafer.
 | `src/lib/links.ts` | Bağlantı çözümleme — Instagram mı site mi, tek yerde |
 | `public/fonts/` | Inter woff dosyaları — **sadece rozet için** |
 
+## Döngü — ürünün tamamı bu
+
+outbid.lol'ü viral yapan şey tahta değil, **tahtın el değiştirmesi**. Beş adım,
+hepsi kodda:
+
+1. **Tahtaya çık** — ilan + teklif (`/ilan-ver`).
+2. **Sırayı al** — teklif geçer geçmez **zafer ekranı** açılır
+   (`?zafer=<bidId>`): sıra, rozet, WhatsApp, kopyala. Sessiz `router.refresh()`
+   parayı alıp hiçbir şey hissettirmemekti.
+3. **Seyirci izler** — canlı çekişme akışı; tahtı alan teklif "1 NUMARA"
+   rozetiyle ayrılır. Anasayfa başlığı tahtı kimin, ne kadardır tuttuğunu söyler.
+4. **Geçilen haber alır** — `src/lib/outbid.ts` geçilenlere mail atar:
+   ne kadarla geçildiği, yeni sırası ve **geri almanın farkı**. Düğme teklif
+   kutusunu o rakamla açar (`?geriAl=<lira>`).
+5. **Geri alır** → 2'ye dön.
+
+Bu döngünün her adımı diğerine bağlı; birini kapatmak zincirin tamamını kırar.
+Özellikle 4: onsuz ürün tek seferlik bir satış, onunla tekrar eden bir bahis.
+
+### Bildirim kuralları (`src/lib/outbid.ts`)
+- Bir teklif için bir ilana **bir kez** yazılır (`Outbid` unique) — ödeme
+  callback'i iki kez gelse de ikinci mail gitmez.
+- Teklif başına **en fazla 4** ilan uyarılır: geçilenlerin en yakın üçü +
+  varsa düşürülen şehir şampiyonu. Büyük bir teklif tahtanın yarısına mail
+  atmasın diye.
+- Üç sebep: `TAHT` (Türkiye 1'liğini kaybetti), `SEHIR` (şehir 1'liğini),
+  `SIRA` (sadece geçildi). Metin buna göre değişir, bağlantı aynı yere gider.
+- Gönderim **asla ödeme yolunu kırmaz**: `after()` ile istek dışına alınır,
+  her hata `Outbid.error` alanına yazılır (anahtar yoksa `POSTA_KAPALI`).
+
 ## Değişmez kurallar
 
 1. **Sıra = `currentBid DESC, firstBidAt ASC`.** Eşitlikte eski teklif üstte.
@@ -63,6 +98,11 @@ tek şey bu ucuz zafer.
 4. **Zirveyi almak `ZIRVE_FARKI` kadar üste çıkmayı gerektirir** — 1 numara
    kuruş kuruş taciz edilmesin diye.
 5. **Sponsorlu sıralama ibaresi footer'dan kaldırılamaz.** Reklam Kurulu şartı.
+6. **Taht süresi yalnızca 1 numara DEĞİŞİNCE sıfırlanır** (`Listing.topSince`,
+   tek yazan yer `applyPaidBid`). Kendi teklifini yükselten lider "az önce
+   zirveye çıktı" görünmez.
+7. **İletişim (ad + e-posta) zorunlu.** Hem İyzico alıcı bilgisi hem bildirim
+   buna bağlı; ikisi de olmadan döngü kopuyor. Tahtada görünmez.
 
 ## ⏳ Açık işler
 
@@ -116,8 +156,18 @@ kez tahtaya çıkamaz (`Listing.url` unique). Instagram bağlantısı mobilde
 uygulamayı açar, açamazsa web'e düşer — bu tarayıcının işi, kodda özel bir şey
 yok.
 
-### 5. "Üste çıkıldın" bildirimi yok
-Tekrar gelirin motoru bu. Mail + WhatsApp. Şu an sadece akışta görünüyor.
+### 5. Bildirim yazıldı — anahtar bekliyor
+Mail yolu bitti (`src/lib/outbid.ts` + `src/lib/mail.ts`), **hiç gönderilmedi**:
+`RESEND_API_KEY` + `MAIL_FROM` tanımlı değil. İkisi dolana kadar gönderim
+sessizce atlanıyor, sebep `Outbid.error`'a `POSTA_KAPALI` olarak yazılıyor —
+yani kayıp yok, sadece ertelenmiş.
+
+Anahtar geldiğinde ilk iş: iki test ilanı, biri diğerini geçsin, mailin
+gerçekten düştüğünü ve düğmenin doğru rakamla açtığını gör.
+
+**WhatsApp otomatik bildirimi YOK ve yakında olmayacak** — WhatsApp Business
+API onaylı şablon + BSP hesabı istiyor, tüzel kişilikten sonraki iş. Zafer
+ekranındaki WhatsApp düğmesi kullanıcının kendi paylaşımı, bildirim değil.
 
 ### 6. Haftalık teslimat kaydı boş
 `Delivery` modeli duruyor ama yazan yok. Satışın karşılığı olan story/post'un
@@ -153,6 +203,11 @@ kodu.
 
 **Lokalde çalıştırmak için** aynı URL'i `.env` içine koy, sonra
 `npm run db:push`. Postgres olmadan uygulama açılmaz.
+
+⚠️ **`vercel-build` şemayı uygulamaz.** `Listing.topSince` ve `Outbid` eklendi
+(2026-08-22); bunlar veritabanına **elle** `npm run db:push` ile geçirilmeli.
+Kod önce deploy edilirse tahta sorgusu eksik kolon yüzünden patlar — önce şema,
+sonra deploy.
 
 ⚠️ Canlı veritabanında şema var ama **0 ilan**. `npm run db:seed` uydurma
 restoran isimleri basar — canlıda çalıştırılıp çalıştırılmayacağı ürün kararı,

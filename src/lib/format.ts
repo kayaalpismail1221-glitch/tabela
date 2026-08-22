@@ -31,3 +31,19 @@ export function since(d: Date | string): string {
   if (sa < 24) return `${sa} saat once`
   return `${Math.floor(sa / 24)} gun once`
 }
+
+/**
+ * Taht suresi — "3 saattir zirvede".
+ *
+ * Tam cumleyi burasi kuruyor cunku sonuc SUNUCUDA hesaplanip istemciye dize
+ * olarak geciyor: iki tarafta ayri ayri Date.now() cagirmak hidrasyon
+ * uyusmazligi uretiyor.
+ */
+export function tahtSozu(d: Date | string): string {
+  const dk = Math.floor((Date.now() - new Date(d).getTime()) / 60000)
+  if (dk < 2) return 'az önce zirveye çıktı'
+  if (dk < 60) return `${dk} dakikadır zirvede`
+  const sa = Math.floor(dk / 60)
+  if (sa < 48) return `${sa} saattir zirvede`
+  return `${Math.floor(sa / 24)} gündür zirvede`
+}

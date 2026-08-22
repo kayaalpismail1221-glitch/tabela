@@ -1,4 +1,7 @@
+import { after } from 'next/server'
 import { prisma } from './prisma'
+import { SIRALAMA } from './board'
+import { usteCikildiBildir } from './outbid'
 import { checkBid } from './rules'
 import { linkLabel } from './links'
 import { cityName } from './cities'
@@ -136,14 +139,20 @@ export async function applyPaidBid(bidId: string): Promise<void> {
   const bid = await prisma.bid.findUnique({ where: { id: bidId } })
   if (!bid || bid.status === 'PAID') return
 
+  let onceki = 0
+  let yeni = 0
+
   await prisma.$transaction(async (tx) => {
     await tx.bid.update({ where: { id: bid.id }, data: { status: 'PAID' } })
 
     const listing = await tx.listing.findUnique({ where: { id: bid.listingId } })
     if (!listing) return
 
+    onceki = listing.currentBid
+
     // Arada daha yuksek bir teklif gectiyse geri sarma.
     if (bid.amount > listing.currentBid) {
+      yeni = bid.amount
       await tx.listing.update({
         where: { id: listing.id },
         data: {
@@ -154,4 +163,51 @@ export async function applyPaidBid(bidId: string): Promise<void> {
       })
     }
   })
+
+  if (yeni <= onceki) return
+
+  await tahtiGuncelle()
+
+  // Bildirim odeme yolunun DISINDA: kullanici cevabini beklemesin, mail
+  // saglayicisi yavaslarsa ya da patlarsa teklif yine de gecerli olsun.
+  arkaPlanda(() => usteCikildiBildir({ bidId: bid.id, listingId: bid.listingId, onceki, yeni }))
+}
+
+/**
+ * Taht suresi. "3 saattir zirvede" cumlesinin tek yazan yeri.
+ *
+ * 1 numara degistiyse yeni sahibin sayaci sifirlanir, eskininki temizlenir.
+ * Degismediyse sayac ILERLEMEZ — kendi teklifini yukselten lider "az once
+ * zirveye cikti" gorunmesin diye.
+ */
+async function tahtiGuncelle(): Promise<void> {
+  const top = await prisma.listing.findFirst({
+    where: { currentBid: { gt: 0 } },
+    orderBy: SIRALAMA,
+    select: { id: true, topSince: true },
+  })
+  if (!top) return
+
+  // Tahti kaybedenlerde bayat sayac kalmasin.
+  await prisma.listing.updateMany({
+    where: { id: { not: top.id }, topSince: { not: null } },
+    data: { topSince: null },
+  })
+
+  if (!top.topSince) {
+    await prisma.listing.update({ where: { id: top.id }, data: { topSince: new Date() } })
+  }
+}
+
+/**
+ * Istek bitse de calismasi gereken isler icin. Next'in `after`i istek
+ * baglaminda calisir; script/seed gibi baglamsiz cagrilarda ates-et-unut'a
+ * duser (orada istek zaten sonlanmiyor).
+ */
+function arkaPlanda(is: () => Promise<void>): void {
+  try {
+    after(is)
+  } catch {
+    void is().catch(() => {})
+  }
 }

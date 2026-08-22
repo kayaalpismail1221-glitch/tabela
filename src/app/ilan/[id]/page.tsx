@@ -3,15 +3,21 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { cityName } from '@/lib/cities'
 import { parseLink } from '@/lib/links'
-import { tl, since } from '@/lib/format'
+import { tl, since, tahtSozu } from '@/lib/format'
 import { suggestedMinimum, priceOfFirstPlace } from '@/lib/rules'
 import { Avatar } from '@/components/Avatar'
 import { BidForm } from '@/components/BidForm'
+import { Zafer } from '@/components/Zafer'
+import { mutlak } from '@/lib/site'
 
 export const dynamic = 'force-dynamic'
 
-export default async function ListingPage({ params }: PageProps<'/ilan/[id]'>) {
+/** Zafer ekrani bu sure icinde acilir; eski bir baglantiyla tekrar acilmaz. */
+const ZAFER_PENCERESI_MS = 2 * 60 * 60 * 1000
+
+export default async function ListingPage({ params, searchParams }: PageProps<'/ilan/[id]'>) {
   const { id } = await params
+  const sp = await searchParams
 
   const listing = await prisma.listing.findUnique({
     where: { id },
@@ -36,8 +42,41 @@ export default async function ListingPage({ params }: PageProps<'/ilan/[id]'>) {
   const topBid = top?.currentBid ?? 0
   const link = parseLink(listing.url)
 
+  // Zafer ekrani yalnizca GERCEK, ODENMIS ve TAZE bir teklifle acilir:
+  // adres cubuguna ?zafer=... yazip kendine kupa dagitilmasin.
+  const zaferId = typeof sp.zafer === 'string' && sp.zafer ? sp.zafer : null
+  const zaferBid = zaferId ? await zaferTeklifi(zaferId, listing.id) : null
+
+  // "Uste cikildin" mailindeki dugme buraya tutar tasiyor; kutu o rakamla acilir.
+  const geriAlLira = Number(typeof sp.geriAl === 'string' ? sp.geriAl : NaN)
+  const baslangic =
+    Number.isFinite(geriAlLira) && geriAlLira > 0 ? Math.round(geriAlLira) * 100 : null
+
+  const odeme = typeof sp.odeme === 'string' ? sp.odeme : null
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
+      {zaferBid && (
+        <Zafer
+          listingId={listing.id}
+          name={listing.name}
+          cityLabel={cityName(listing.city)}
+          nationalRank={nationalRank}
+          cityRank={cityRank}
+          amount={zaferBid.amount}
+          paylasUrl={mutlak(`/ilan/${listing.id}`)}
+          bildirimAdresi={listing.ownerEmail}
+        />
+      )}
+
+      {/* Odeme donusu sessiz kalmasin: basarisiz odeme kullaniciya soylenir */}
+      {(odeme === 'basarisiz' || odeme === 'hata') && (
+        <p className="mb-5 rounded-xl border border-hot/50 bg-hot/10 px-4 py-3 text-sm text-hot">
+          Ödeme tamamlanamadı, teklifin uygulanmadı. Kart hesabından tutar çekilmediyse tekrar
+          deneyebilirsin.
+        </p>
+      )}
+
       <nav className="text-sm text-muted">
         <Link href="/" className="hover:text-text">
           Türkiye
@@ -56,6 +95,11 @@ export default async function ListingPage({ params }: PageProps<'/ilan/[id]'>) {
             {link?.label ?? listing.url} · {cityName(listing.city)}
             {listing.district ? `, ${listing.district}` : ''}
           </p>
+          {nationalRank === 1 && listing.topSince && (
+            <p className="mt-2 inline-block rounded-full border border-neon/40 px-2.5 py-1 text-xs font-bold text-neon">
+              {tahtSozu(listing.topSince)}
+            </p>
+          )}
           <p className="mt-3 text-text/80">{listing.description}</p>
         </div>
       </header>
@@ -91,7 +135,8 @@ export default async function ListingPage({ params }: PageProps<'/ilan/[id]'>) {
         <p className="mt-1 text-sm text-muted">
           Yatırdığın <strong className="text-text">{tl(listing.currentBid)}</strong> duruyor; sadece{' '}
           <strong className="text-text">farkı</strong> ödersin.
-          {priceOfFirstPlace(topBid) > listing.currentBid && (
+          {/* Zaten 1 numaraysa "1 numarayi al" demek sacma — yalniz altindakilere */}
+          {nationalRank > 1 && priceOfFirstPlace(topBid) > listing.currentBid && (
             <>
               {' '}
               1 numarayı almak için ek{' '}
@@ -106,11 +151,13 @@ export default async function ListingPage({ params }: PageProps<'/ilan/[id]'>) {
           {/* key: teklif degisince form yeniden kurulsun, kutuda eski (artik
               gecersiz) tutar kalmasin */}
           <BidForm
-            key={listing.currentBid}
+            key={`${listing.currentBid}-${baslangic ?? ''}`}
             listingId={listing.id}
             city={listing.city}
             current={listing.currentBid}
             minimum={suggestedMinimum(listing.currentBid)}
+            baslangic={baslangic}
+            iletisimGerekli={!listing.ownerEmail}
           />
         </div>
       </section>
@@ -146,6 +193,25 @@ export default async function ListingPage({ params }: PageProps<'/ilan/[id]'>) {
       </section>
     </div>
   )
+}
+
+/**
+ * Zafer ekranini acmaya yetkili teklif. Ilana ait, ODENMIS ve taze olmayan
+ * hicbir teklif kupa acmaz.
+ *
+ * Sorgu bilerek bilesenin DISINDA: `Date.now()` render sirasinda cagrilan
+ * saf olmayan bir fonksiyon, React derleyicisi hakli olarak sikayet ediyor.
+ */
+async function zaferTeklifi(bidId: string, listingId: string) {
+  return prisma.bid.findFirst({
+    where: {
+      id: bidId,
+      listingId,
+      status: 'PAID',
+      createdAt: { gt: new Date(Date.now() - ZAFER_PENCERESI_MS) },
+    },
+    select: { amount: true },
+  })
 }
 
 function Cell({ label, value, accent }: { label: string; value: string; accent?: boolean }) {

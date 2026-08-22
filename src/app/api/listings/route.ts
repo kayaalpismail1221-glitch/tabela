@@ -35,9 +35,9 @@ export async function POST(req: Request) {
   const city = (body.city ?? '').trim()
   const district = (body.district ?? '').trim() || null
   const description = (body.description ?? '').trim()
-  // Iletisim alanlari ilan formundan kaldirildi. Sema hala tasiyor: odeme
-  // canliya alinirken Iyzico alici bilgisi istiyor ve "uste cikildin"
-  // bildirimi bu e-postaya gidecek — o adimda tekrar toplanacak.
+  // Iletisim ZORUNLU. Iki sebep birden: (1) Iyzico alici bilgisi istiyor,
+  // uydurma veri fraud skorlamasini bozar; (2) "uste cikildin" bildirimi bu
+  // adrese gidiyor ve tekrar gelirin tek motoru o.
   const ownerName = (body.ownerName ?? '').trim() || null
   const ownerEmail = (body.ownerEmail ?? '').trim().toLowerCase() || null
   const ownerPhone = (body.ownerPhone ?? '').trim() || null
@@ -58,7 +58,10 @@ export async function POST(req: Request) {
   if (description.length < 5 || description.length > 90) {
     return NextResponse.json({ error: 'Açıklama 5-90 karakter olmalı.' }, { status: 400 })
   }
-  if (ownerEmail && !EPOSTA.test(ownerEmail)) {
+  if (!ownerName || ownerName.length < 2 || ownerName.length > 60) {
+    return NextResponse.json({ error: 'Ad soyad 2-60 karakter olmalı.' }, { status: 400 })
+  }
+  if (!ownerEmail || !EPOSTA.test(ownerEmail)) {
     return NextResponse.json({ error: 'Geçerli bir e-posta yaz.' }, { status: 400 })
   }
   if (!Number.isInteger(amount) || amount < TABAN_TEKLIF) {
@@ -114,5 +117,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ paymentUrl: result.paymentUrl, listingId: listing.id })
   }
 
-  return NextResponse.json({ listingId: listing.id, rank: result.rank, paid: result.paid })
+  return NextResponse.json({
+    listingId: listing.id,
+    bidId: result.bidId,
+    rank: result.rank,
+    paid: result.paid,
+  })
 }

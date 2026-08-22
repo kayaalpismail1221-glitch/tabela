@@ -24,6 +24,8 @@ export type Rakamlar = {
   ziyaretci: number
   /** Tahsil edilen toplam tutar (kurus) */
   hacim: number
+  /** Tahtin kac kez el degistirdigi — 1 numaraya oturan teklif sayisi */
+  tahtDegisimi: number
   /** Lansmandan bu yana gecen saat */
   saat: number
   /** Lansmandan bu yana gecen gun */
@@ -33,10 +35,12 @@ export type Rakamlar = {
 export async function getRakamlar(): Promise<Rakamlar> {
   const esik = new Date(Date.now() - AKTIF_PENCERE_DK * 60_000)
 
-  const [aktif, ziyaretci, toplam] = await Promise.all([
+  const [aktif, ziyaretci, toplam, tahtDegisimi] = await Promise.all([
     prisma.visitor.count({ where: { lastSeen: { gte: esik } } }),
     prisma.visitor.count(),
     prisma.bid.aggregate({ where: { status: 'PAID' }, _sum: { paid: true } }),
+    // rankAfter teklif anindaki siradir; 1 ise o teklif tahti almistir.
+    prisma.bid.count({ where: { status: 'PAID', rankAfter: 1 } }),
   ])
 
   const gecen = Date.now() - LANSMAN.getTime()
@@ -45,6 +49,7 @@ export async function getRakamlar(): Promise<Rakamlar> {
     aktif,
     ziyaretci,
     hacim: toplam._sum.paid ?? 0,
+    tahtDegisimi,
     saat: Math.max(0, Math.floor(gecen / 3_600_000)),
     gun: Math.max(0, Math.floor(gecen / 86_400_000)),
   }

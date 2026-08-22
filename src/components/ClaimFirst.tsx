@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { tl } from '@/lib/format'
 import { MIN_ARTIS, TABAN_TEKLIF } from '@/lib/rules'
@@ -10,7 +11,15 @@ import { MIN_ARTIS, TABAN_TEKLIF } from '@/lib/rules'
  * alirsin". Ziyaretci daha ilk saniyede tahtanin ne kadara mal oldugunu
  * goruyor; − / + ile rakami kendi eliyle oynatabiliyor.
  */
-export function ClaimFirst({ zirveFiyati }: { zirveFiyati: number }) {
+export function ClaimFirst({
+  zirveFiyati,
+  zirve,
+}: {
+  zirveFiyati: number
+  /** Tahti su an kim tutuyor. Bos tahta ile dolu tahta ayni cumleyi kurmaz:
+   *  birinde davet var, digerinde rakip. `soz` sunucuda hesaplandi. */
+  zirve?: { id: string; name: string; soz: string } | null
+}) {
   const router = useRouter()
   const [tutar, setTutar] = useState(zirveFiyati)
 
@@ -39,7 +48,19 @@ export function ClaimFirst({ zirveFiyati }: { zirveFiyati: number }) {
         ’ye al
       </div>
 
-      <p className="mx-auto mt-4 max-w-lg text-balance text-sm text-muted">
+      {zirve ? (
+        <p className="mt-4 text-sm text-muted">
+          Zirve şu an{' '}
+          <Link href={`/ilan/${zirve.id}`} className="font-bold text-text hover:text-neon">
+            {zirve.name}
+          </Link>
+          ’de — {zirve.soz}.
+        </p>
+      ) : (
+        <p className="mt-4 text-sm text-muted">Taht boş. İlk ilanı veren 1 numara olur.</p>
+      )}
+
+      <p className="mx-auto mt-3 max-w-lg text-balance text-sm text-muted">
         Yeni ilanlar <span className="text-text">{tl(TABAN_TEKLIF)}</span>’den başlıyor. Daha az
         verirsen de tahtaya girersin — tutarının hak ettiği sıraya oturursun.
       </p>

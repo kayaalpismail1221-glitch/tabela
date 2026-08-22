@@ -18,7 +18,16 @@ export function TotalRaised({ r }: { r: Rakamlar }) {
         </span>
       </div>
 
-      <p className="mt-3 text-sm text-muted">topladı — {yasSozu(r)} açıldı</p>
+      <p className="mt-3 text-sm text-muted">
+        topladı — {yasSozu(r)} açıldı
+        {r.tahtDegisimi > 0 && (
+          <>
+            {' · '}taht{' '}
+            <span className="text-text">{r.tahtDegisimi.toLocaleString('tr-TR')}</span> kez el
+            değiştirdi
+          </>
+        )}
+      </p>
     </section>
   )
 }

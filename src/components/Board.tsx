@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import type { Row } from '@/lib/board'
 import { cityName } from '@/lib/cities'
-import { tl, since } from '@/lib/format'
+import { tl, since, tahtSozu } from '@/lib/format'
 import { Avatar } from './Avatar'
 
 /**
@@ -31,12 +31,18 @@ function Zaman({ row }: { row: Row }) {
 
 /** Ilk uclerden biri. */
 function TopCard({ row, showCity }: { row: Row; showCity: boolean }) {
+  // Taht suresi yalnizca GENEL 1 numarada anlamli: sehir tahtasinda ayni
+  // rozet "Trabzon'un tahti" gibi okunur, oysa sayac Turkiye tahtinin.
+  const taht = row.rank === 1 && !row.nationalRank && row.topSince ? tahtSozu(row.topSince) : null
+
   return (
     <Link
       href={`/ilan/${row.id}`}
       className={`flex items-start gap-3 rounded-2xl border p-4 transition hover:brightness-110 sm:gap-4 sm:p-5 ${VURGU[row.rank - 1] ?? VURGU[2]}`}
     >
-      <span className="mt-0.5 shrink-0 rounded-full bg-neon px-2.5 py-1 text-sm font-black tabular-nums text-ink">
+      <span
+        className={`mt-0.5 shrink-0 rounded-full bg-neon px-2.5 py-1 text-sm font-black tabular-nums text-ink ${row.rank === 1 ? 'pulse' : ''}`}
+      >
         #{row.rank}
       </span>
 
@@ -59,8 +65,13 @@ function TopCard({ row, showCity }: { row: Row; showCity: boolean }) {
 
         <p className="mt-1 line-clamp-2 text-sm text-text/80">{row.description}</p>
 
-        <div className="mt-2">
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
           <Zaman row={row} />
+          {taht && (
+            <span className="rounded-full border border-neon/40 px-2 py-0.5 text-[10px] font-bold text-neon">
+              {taht}
+            </span>
+          )}
         </div>
       </div>
 

@@ -3,7 +3,9 @@ import { CITIES } from './cities'
 import { linkLabel } from './links'
 
 // Sira kurali TEK YERDE: currentBid DESC, firstBidAt ASC (esitlikte eski teklif ustte).
-const SIRALAMA = [{ currentBid: 'desc' as const }, { firstBidAt: 'asc' as const }]
+// Disari aciktir cunku "kim 1 numara" sorusunu bids.ts de soruyor — ikinci bir
+// kopya cikarsa taht ile tahta farkli cevap verir.
+export const SIRALAMA = [{ currentBid: 'desc' as const }, { firstBidAt: 'asc' as const }]
 
 // Yayindaki ilan = odemesi gecmis (currentBid > 0) ilan.
 const YAYINDA = { currentBid: { gt: 0 } }
@@ -21,6 +23,8 @@ export type Row = {
   currentBid: number
   clickCount: number
   lastBidAt: Date | null
+  /** Genel tahti ne zamandan beri tutuyor (yalniz 1 numarada dolu). */
+  topSince: Date | null
   /** Genel listedeki sirasi — sehir tahtasinda rozet olarak gosterilir. */
   nationalRank?: number
 }
@@ -36,6 +40,7 @@ type Kayit = {
   currentBid: number
   clickCount: number
   lastBidAt: Date | null
+  topSince: Date | null
 }
 
 function toRow(l: Kayit, rank: number): Row {
@@ -52,6 +57,7 @@ function toRow(l: Kayit, rank: number): Row {
     currentBid: l.currentBid,
     clickCount: l.clickCount,
     lastBidAt: l.lastBidAt,
+    topSince: l.topSince,
   }
 }
 
@@ -153,6 +159,32 @@ export async function getActivity(take = 20): Promise<Activity[]> {
 export async function getTopBid(): Promise<number> {
   const top = await prisma.listing.findFirst({ where: YAYINDA, orderBy: SIRALAMA })
   return top?.currentBid ?? 0
+}
+
+export type Zirve = {
+  id: string
+  name: string
+  label: string
+  city: string
+  currentBid: number
+  topSince: Date | null
+}
+
+/**
+ * Su anki 1 numara. Anasayfanin basligi bunu soyluyor: tahtin BOS olmadigini
+ * ve ne kadar suredir tutuldugunu gormeyen kimse teklif vermiyor.
+ */
+export async function getZirve(): Promise<Zirve | null> {
+  const l = await prisma.listing.findFirst({ where: YAYINDA, orderBy: SIRALAMA })
+  if (!l) return null
+  return {
+    id: l.id,
+    name: l.name,
+    label: linkLabel(l.url),
+    city: l.city,
+    currentBid: l.currentBid,
+    topSince: l.topSince,
+  }
 }
 
 // getStats buradan tasindi -> src/lib/stats.ts (getRakamlar)

@@ -48,9 +48,15 @@ model Listing {
   clickCount Int      @default(0)
   createdAt  DateTime @default(now())
 
+  /** Genel tahti ne zamandan beri tutuyor. null = su an 1 numara degil.
+   *  "3 saattir zirvede" cumlesi ve rozet buradan besleniyor; tek yazan yer
+   *  applyPaidBid (src/lib/bids.ts). */
+  topSince DateTime?
+
   bids       Bid[]
   clicks     Click[]
   deliveries Delivery[]
+  outbids    Outbid[]
 
   @@index([currentBid])
   @@index([city, currentBid])
@@ -102,6 +108,28 @@ model CityRequest {
   createdAt DateTime @default(now())
 
   @@unique([city, handle])
+}
+
+// "Uste cikildin" bildirimi. Dongunun tekrar gelir ureten adimi burasi.
+//
+// Kayit iki isi birden goruyor:
+//   1) Idempotency — ayni teklif icin ayni ilana ikinci mail gitmez
+//      (odeme callback'i iki kez gelebilir).
+//   2) Kanit — kime, neden, ne zaman yazildigi ve hata aldiysa sebebi.
+model Outbid {
+  id        String  @id @default(cuid())
+  listingId String // tahti/sirayi KAYBEDEN ilan
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  byBidId String // sebep olan teklif (Bid.id) — iliski kurmuyoruz, teklif silinse de kanit kalsin
+  reason  String // TAHT | SEHIR | SIRA
+
+  sentAt    DateTime?
+  error     String?
+  createdAt DateTime  @default(now())
+
+  @@unique([listingId, byBidId])
+  @@index([listingId, createdAt])
 }
 
 // Haftalik teslimat kaniti (story/post). Satisin tamami buna dayaniyor.

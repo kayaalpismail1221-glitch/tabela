@@ -12,14 +12,22 @@ export function BidForm({
   city,
   current,
   minimum,
+  baslangic = null,
+  iletisimGerekli = false,
 }: {
   listingId: string
   city: string
   current: number
   minimum: number
+  /** Mailden gelen "geri al" tutari — kutu bu rakamla acilir. */
+  baslangic?: number | null
+  /** Ilanda kayitli e-posta yoksa burada toplaniyor — odeme ve bildirim buna bagli. */
+  iletisimGerekli?: boolean
 }) {
   const router = useRouter()
-  const [lira, setLira] = useState(String(Math.ceil(minimum / 100)))
+  const [lira, setLira] = useState(String(Math.ceil(Math.max(baslangic ?? 0, minimum) / 100)))
+  const [ownerName, setOwnerName] = useState('')
+  const [ownerEmail, setOwnerEmail] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -34,7 +42,7 @@ export function BidForm({
     const res = await fetch('/api/bids', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ listingId, amount }),
+      body: JSON.stringify({ listingId, amount, ownerName, ownerEmail }),
     })
     const data = await res.json()
 
@@ -48,6 +56,8 @@ export function BidForm({
       window.location.href = data.paymentUrl
       return
     }
+    // Zafer ekrani sirayi aldigi ani gosteriyor; refresh tek basina sessiz.
+    router.push(`?zafer=${data.bidId ?? ''}`)
     router.refresh()
   }
 
@@ -79,6 +89,30 @@ export function BidForm({
         current={current}
         onPick={(kurus) => setLira(String(Math.ceil(kurus / 100)))}
       />
+
+      {iletisimGerekli && (
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <input
+            value={ownerName}
+            onChange={(e) => setOwnerName(e.target.value)}
+            placeholder="Ad soyad"
+            autoComplete="name"
+            className="w-full rounded-xl border border-line bg-ink px-3 py-2.5 text-sm outline-none focus:border-neon"
+          />
+          <input
+            value={ownerEmail}
+            onChange={(e) => setOwnerEmail(e.target.value)}
+            placeholder="E-posta"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            className="w-full rounded-xl border border-line bg-ink px-3 py-2.5 text-sm outline-none focus:border-neon"
+          />
+          <p className="text-xs text-muted sm:col-span-2">
+            Üste çıkıldığında haber verebilmemiz için. Tahtada görünmez.
+          </p>
+        </div>
+      )}
 
       {error && <p className="mt-1.5 text-xs text-hot">{error}</p>}
 

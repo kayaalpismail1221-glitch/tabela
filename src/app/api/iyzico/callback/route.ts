@@ -68,6 +68,8 @@ export async function POST(req: Request) {
   await prisma.bid.update({ where: { id: bid.id }, data: { paymentRef: sonuc.paymentId } })
   await applyPaidBid(bid.id)
 
-  ilan.searchParams.set('odeme', 'tamam')
+  // Odemeden donen kullanici duz ilan sayfasina degil ZAFER ekranina duser:
+  // sirayi aldigi ani gormeden kimse paylasmiyor.
+  ilan.searchParams.set('zafer', bid.id)
   return NextResponse.redirect(ilan, { status: 303 })
 }

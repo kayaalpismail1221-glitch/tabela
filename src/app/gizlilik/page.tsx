@@ -60,6 +60,10 @@ export default function GizlilikPage() {
         <ul className="list-disc space-y-1 pl-5">
           <li>Ödeme kuruluşu — ödemenin alınması ve doğrulanması amacıyla</li>
           <li>Barındırma (hosting) ve veritabanı sağlayıcıları — verinin saklanması amacıyla</li>
+          <li>
+            E-posta gönderim hizmeti sağlayıcısı — teklifinizin geçildiğine dair bilgilendirme
+            iletisinin gönderilmesi amacıyla
+          </li>
           <li>Yetkili kamu kurum ve kuruluşları — mevzuat gereği talep edilmesi hâlinde</li>
         </ul>
         <p>

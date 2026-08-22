@@ -69,3 +69,23 @@ export function suggestedMinimum(listingCurrent: number): number {
 export function priceOfFirstPlace(topBid: number): number {
   return topBid === 0 ? TABAN_TEKLIF : topBid + ZIRVE_FARKI
 }
+
+/**
+ * Belirli bir rakibi gecmenin bedeli — "uste cikildin" mailinin ve ilan
+ * sayfasindaki "geri al" onerisinin ayni rakami soylemesi icin TEK KAYNAK.
+ *
+ * Uc kurali birden saglayan en kucuk tutari dondurur: rakibin ustune cikmak,
+ * kendi teklifini MIN_ARTIS kadar artirmak, zirveyi hedefliyorsa ZIRVE_FARKI.
+ * Sonuc her zaman checkBid'den gecer.
+ *
+ * @param hedefBid rakibin su anki teklifi
+ * @param kendiBid bizim su anki teklifimiz (yeni ilan icin 0)
+ * @param topBid   tahtadaki en yuksek teklif
+ */
+export function priceToPass(hedefBid: number, kendiBid: number, topBid: number): number {
+  let tutar = Math.max(hedefBid + MIN_ARTIS, TABAN_TEKLIF)
+  if (kendiBid > 0) tutar = Math.max(tutar, kendiBid + MIN_ARTIS)
+  // Zirveyi asiyorsak zirve kuralina da uymak zorunda.
+  if (topBid > 0 && tutar > topBid) tutar = Math.max(tutar, topBid + ZIRVE_FARKI)
+  return tutar
+}

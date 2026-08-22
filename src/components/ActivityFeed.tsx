@@ -79,8 +79,14 @@ export function ActivityFeed({ initial }: { initial: Item[] }) {
                 <span className="text-muted">tahtaya çıktı</span>
               )}
             </p>
-            <p className="mt-1 flex items-center gap-2 text-xs">
+            <p className="mt-1 flex flex-wrap items-center gap-2 text-xs">
               <span className="font-bold tabular-nums text-neon">{tl(it.amount)}</span>
+              {/* Tahtin el degistirdigi an akisin en degerli satiri — ayirt edilsin */}
+              {it.rankAfter === 1 && (
+                <span className="rounded-full bg-neon px-2 py-0.5 text-[10px] font-black text-ink">
+                  1 NUMARA
+                </span>
+              )}
               <span className="text-muted">{since(it.createdAt)}</span>
             </p>
           </li>

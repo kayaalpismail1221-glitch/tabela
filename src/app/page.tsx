@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getBoard, getCityChampions, getActivity, getTopBid } from '@/lib/board'
+import { getBoard, getCityChampions, getActivity, getTopBid, getZirve } from '@/lib/board'
 import { Board } from '@/components/Board'
 import { CityChampions } from '@/components/CityChampions'
 import { ActivityFeed } from '@/components/ActivityFeed'
@@ -9,6 +9,7 @@ import { TotalRaised } from '@/components/TotalRaised'
 import { ziyaretKaydet } from '@/lib/stats'
 import { headers } from 'next/headers'
 import { priceOfFirstPlace } from '@/lib/rules'
+import { tahtSozu } from '@/lib/format'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,12 +25,13 @@ async function ziyaretiKaydet() {
 }
 
 export default async function HomePage() {
-  const [rows, champions, activity, rakamlar, topBid] = await Promise.all([
+  const [rows, champions, activity, rakamlar, topBid, zirve] = await Promise.all([
     getBoard(undefined, 50),
     getCityChampions(),
     getActivity(20),
     ziyaretiKaydet(),
     getTopBid(),
+    getZirve(),
   ])
 
   return (
@@ -38,7 +40,14 @@ export default async function HomePage() {
         <LivePill aktif={rakamlar.aktif} ziyaretci={rakamlar.ziyaretci} />
 
         <div className="mt-6">
-          <ClaimFirst zirveFiyati={priceOfFirstPlace(topBid)} />
+          <ClaimFirst
+            zirveFiyati={priceOfFirstPlace(topBid)}
+            zirve={
+              zirve && zirve.topSince
+                ? { id: zirve.id, name: zirve.name, soz: tahtSozu(zirve.topSince) }
+                : null
+            }
+          />
         </div>
 
         <p className="mt-6 text-sm text-muted">
