@@ -224,15 +224,6 @@ export function ListingForm({
             ))}
           </select>
         </Field>
-
-        <Field label="İlçe" hint="İsteğe bağlı.">
-          <input
-            value={district}
-            onChange={(e) => setDistrict(e.target.value)}
-            placeholder="Beyoğlu"
-            className="w-full rounded-xl border border-line bg-ink px-3 py-3 outline-none focus:border-neon"
-          />
-        </Field>
       </div>
 
       <Field label="Tek satır iddia" hint={`${description.length}/90`}>
