@@ -47,7 +47,12 @@ export function ClaimFirst({
           <Link href={`/ilan/${zirve.id}`} className="font-bold text-text hover:text-neon">
             {zirve.name}
           </Link>
-          {zirve.soz && <> — {zirve.soz}</>}.
+          {zirve.soz && (
+            <>
+              <br />
+              <span className="text-sm">{zirve.soz}</span>
+            </>
+          )}
         </p>
       ) : (
         <p className="mt-5 text-base text-muted sm:text-lg">
