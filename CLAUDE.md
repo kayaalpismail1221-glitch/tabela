@@ -110,6 +110,43 @@ Bu döngünün her adımı diğerine bağlı; birini kapatmak zincirin tamamın�
 - Gönderim **asla ödeme yolunu kırmaz**: `after()` ile istek dışına alınır,
   her hata `Outbid.error` alanına yazılır (anahtar yoksa `POSTA_KAPALI`).
 
+## İlan sayfası — Devral vs Yükselt (2026-08-22 kararı)
+
+Giriş sistemi yok, bu yüzden ilan sayfasının (`/ilan/[id]`) EKRANI iki farklı
+ziyaretçiye iki farklı şey söylemek zorunda; ikisini karıştırmak parayı boşa
+harcatır.
+
+- **Devral** (herkesin gördüğü, birincil buton): "Kendi ilanını {bedel} ile
+  ver — sıra senin olur, bağlantı senin işletmene gider." Bu, `/ilan-ver`'e
+  şehir + tutar önceden dolu giden bir yönlendirme — **YENİ bir ilan**
+  oluşturur, mevcut ilana dokunmaz. Rakip buraya para verirse KENDİ ilanı
+  yükselir, başkasının değil.
+- **"Bu ilan benim, teklifimi yükselteceğim"** (kapalı `<details>`, ikincil):
+  gerçek sahibi için. Açılınca "Yatırdığın X duruyor, sadece farkı ödersin"
+  — yani toplam teklif ARTAR ama hep aynı ilanın/sahibin kalır, kimse
+  "kiralık artış" ödemiyor.
+- **Sahiplik kapısı** (`api/bids`, giriş olmadığı için tek kanıt): ilanın
+  `ownerEmail`'i doluysa, teklifi yükseltmek isteyen AYNI e-postayı yazmak
+  zorunda; tutmuyorsa 403 + "Bu ilan sana ait değil" — `BidForm`'da
+  `sahiplikGerekli` prop'u bu inputu açıyor. ⚠️ Bilinen delik: e-postası
+  olmayan (yarım kalmış) bir ilanı ilk yükselten kişi sahibi olur; yeni
+  ilanlar her zaman e-posta ile oluştuğu için delik yalnızca eski kayıtlar
+  için açık.
+
+Anasayfadaki/şehir tahtasındaki **"Yükselt" pilli** (`Board.tsx`) her zaman
+`/ilan/{id}`'e gider — tıklayan sahip mi değil mi bilmiyoruz, o yüzden
+kapıyı sayfa açık, karar orada veriliyor.
+
+## Tahta satırı tıklama davranışı (Gemini, 2026-08-22)
+
+Kart/satırın TAMAMI görünmez bir `<a href="/git/{id}" target="_blank">` ile
+kaplı (z-index en altta) — **sıralamada nereye tıklarsan tıkla, devral/yükselt
+pili DIŞINDA, işletmenin gerçek sitesine/Instagram'ına gidersin**. "Yükselt"
+pili ayrı bir z-index katmanında, üstte durur, kendi linkine gider
+(`/ilan/{id}`). `/git/{id}` tıklama sayacını da artırıyor. Bu Gemini'nin aynı
+turda yaptığı bir değişiklik (commit `06da420`); sunucu tarafı doğrulandı
+(`/git/{id}` 307 ile doğru adrese yönlendiriyor).
+
 ## Değişmez kurallar
 
 1. **Sıra = `currentBid DESC, firstBidAt ASC`.** Eşitlikte eski teklif üstte.
@@ -305,6 +342,15 @@ kalıyor. Sürtünme, tahtayı boş bırakan tek şey.
   adrese sunucudan istek atıyoruz, `localhost` ve özel IP aralıkları reddedilir.
   DNS çözümlemesi yapılmıyor — kazayla iç ağa çıkmayı keser, kararlı saldırganı
   değil.
+- **Amblem boyut limiti TEK YERDE:** `src/lib/amblem.ts` (`AMBLEM_EN_BUYUK`,
+  80 KB). Hem istemci (`gorselKucult.ts`, galeri fotoğrafını küçültme hedefi)
+  hem sunucu (`api/listings`, doğrulama) buradan okuyor — ikisi ayrı sayı
+  tutuyordu, biri küçültüp diğeri reddetmeye devam edebilirdi (henüz
+  gerçekleşmedi ama kırılgandı, birleştirildi). `gorselKucult` kaliteyi
+  kademeli düşürüyor (0.82 → 0.2) sonuç sınıra sığana kadar — gerçek
+  fotoğraflar (özellikle yemek fotoğrafı, dokulu) webp'de büyük çıkabiliyor
+  diye. Sentetik gürültü testinde bile 144px'te en kötü ihtimal ~15 KB
+  çıktı, yani pratikte limit aşılmıyor; yine de tek kaynağa toplandı.
 - Buton: **"Şehrinin en popüleri ol · {tutar}"**. Altında "Tek seferlik ödeme,
   abonelik değil" — sistem tekil, abonelik yok ve öyle kalacak.
 
@@ -354,6 +400,19 @@ pahalı şeyi olurdu.
 - "Su an burada" = son 5 dakika. Arka plandaki sekme ziyaretçi sayılır ama
   aktif sayılmaz: `lastSeen` yalnızca sekme görünürken ilerliyor.
 
+- **Instagram profil fotoğrafı çekilemiyor — denendi, teknik bir çıkmaz,
+  tekrar denemeyin (2026-08-22).** Instagram'ın normal tarayıcıya gösterdiği
+  HTML bir giriş duvarı; ama Google'ın crawler'ına (`User-Agent: Googlebot`)
+  SEO amaçlı farklı bir HTML veriyor ve o HTML'de `og:image` olarak gerçek
+  profil fotoğrafının CDN adresi var. **Buraya kadar çalışıyor.** Ama o CDN
+  adresi ayrı bir imzalı-URL korumasıyla kilitli: aynı adresi (aynı
+  User-Agent, aynı cookie, `Referer` ile bile) başka bir yerden indirmeye
+  çalışınca Instagram `403 Bad URL timestamp` döndürüyor — imza muhtemelen
+  Google'ın gerçek IP aralığına bağlı, bizim sunucumuzdan asla geçmiyor.
+  Yani User-Agent sahteciliği HTML'i açıyor ama görüntüyü hiç açmıyor;
+  kodlamaya değecek bir şey yok, sonuç her zaman 403. Instagram ilanları
+  harf amblemiyle kalıyor; kullanıcı isterse formdan galeriden kendi
+  fotoğrafını yükler.
 - Rozet fontu `public/fonts` altından `fs.readFile` ile okunuyor. `fetch(file://)`
   Node runtime'da çalışmıyor; `public/` her zaman deploy'a dahil olduğu için
   en güvenli yol bu.

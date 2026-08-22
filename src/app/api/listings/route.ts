@@ -4,6 +4,7 @@ import { cityBySlug } from '@/lib/cities'
 import { parseLink } from '@/lib/links'
 import { placeBid } from '@/lib/bids'
 import { siteLogosu, logoAdresinden } from '@/lib/logo'
+import { gecerliAmblem } from '@/lib/amblem'
 import { TABAN_TEKLIF } from '@/lib/rules'
 
 export const dynamic = 'force-dynamic'
@@ -22,21 +23,6 @@ type Body = {
   imageUrl?: string | null // formdaki "Bilgileri cek" adiminda cekilmis amblem (data URI)
   logoUrl?: string | null // kullanicinin elle verdigi logo adresi
   amount?: number // kurus
-}
-
-/**
- * Istemciden gelen amblem data URI'si. Rastgele bir dizeyi veritabanina
- * yazmiyoruz: yalnizca bilinen gorsel turleri ve makul boy.
- *
- * SVG bilerek DISARIDA: SVG bir belge formati, script tasiyabiliyor ve
- * amblem hicbir yerde bunu gerektirmiyor.
- */
-const AMBLEM_TURU = /^data:image\/(webp|png|jpeg|jpg|gif|x-icon|vnd\.microsoft\.icon);base64,[A-Za-z0-9+/=]+$/
-const AMBLEM_EN_BUYUK = 80_000
-
-function gecerliAmblem(v: unknown): string | null {
-  if (typeof v !== 'string' || v.length > AMBLEM_EN_BUYUK) return null
-  return AMBLEM_TURU.test(v) ? v : null
 }
 
 export async function POST(req: Request) {
