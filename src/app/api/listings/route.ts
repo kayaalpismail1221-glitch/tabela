@@ -52,7 +52,7 @@ export async function POST(req: Request) {
   const city = (body.city ?? '').trim()
   const district = (body.district ?? '').trim() || null
   const description = (body.description ?? '').trim()
-  // Iletisim ZORUNLU. Iki sebep birden: (1) Iyzico alici bilgisi istiyor,
+  // Iletisim ZORUNLU. Iki sebep birden: (1) Shopier alici bilgisi istiyor,
   // uydurma veri fraud skorlamasini bozar; (2) "uste cikildin" bildirimi bu
   // adrese gidiyor ve tekrar gelirin tek motoru o.
   const ownerName = (body.ownerName ?? '').trim() || null

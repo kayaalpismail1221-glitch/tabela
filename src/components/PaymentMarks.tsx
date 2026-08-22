@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 /**
  * Odeme adiminda kabul edilen kart markalari + 3DS ibaresi.
- * Iyzico uye isyeri basvurusunda sitede aranan unsurlardan biri.
+ * Odeme kurulusunun sitede aradigi unsurlardan biri.
  *
  * Logolar disaridan cekilmiyor: uzak gorsel yok, hepsi inline SVG.
  * Beyaz cip icinde duruyorlar cunku marka renkleri koyu zeminde okunmuyor.

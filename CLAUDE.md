@@ -55,6 +55,8 @@ tek şey bu ucuz zafer.
 | `src/app/rozet/[id]/` | **1080×1920 story kartı** (next/og) |
 | `src/app/git/[id]/` | Tıklama sayacı + Instagram'a yönlendirme |
 | `src/app/api/listings` | İlan oluştur + ilk teklif |
+| `src/app/odeme/[jeton]/` | Shopier'e giden ara sayfa (imzalı form POST'u) |
+| `src/app/api/shopier/callback` | Ödeme bildirimi — imza + tutar doğrulaması |
 | `src/app/api/bids` | Teklif yükselt |
 | `src/app/api/activity` | Canlı çekişme akışı (8 sn yoklama) |
 | `src/app/api/rank` | "Bu parayı verirsem kaçıncı olurum?" — canlı sıra önizlemesi |
@@ -66,6 +68,7 @@ tek şey bu ucuz zafer.
 | `src/lib/site.ts` | **Kanonik alan adı (`tabela.lol`)** + mutlak bağlantı — tek kaynak |
 | `src/lib/rules.ts` | **Teklif kuralları — tek kaynak** (`priceToPass` dahil) |
 | `src/lib/bids.ts` | Teklif uygulama + ödeme kesme noktası |
+| `src/lib/shopier.ts` | **Ödeme — tek kaynak** (imza, form, callback doğrulama) |
 | `src/lib/board.ts` | Sıralama sorguları (sıra kuralı tek yerde) |
 | `src/lib/stats.ts` | Tahtanin rakamlari + LANSMAN sabiti — tek kaynak |
 | `src/components/VisitorProvider.tsx` | Ziyaretci sayimi — kok yerlesimde, TUM sayfalarda |
@@ -141,37 +144,42 @@ hukuken eksiktir ve sayfa bunu kırmızı bir Taslak uyarısıyla söylüyor.
 
 Metinler hukuk danışmanı görmedi — başvuru öncesi mali müşavir/avukat okumalı.
 
-### 3. İyzico: anahtarlar bağlandı, akış hâlâ denenmedi
-**Üye işyeri Culinora'nınki** (2026-08-22 kullanıcı kararı — o da şahıs
-şirketiydi). Anahtarlar `gastrofolly/.env.local`'den alındı ve **prod Iyzico'ya
-karşı doğrulandı** (`apiTest` → `status: success`, tahsilat yapılmadan).
-Lokal `.env` dolu; **Vercel'e girilmedi**.
+### 3. Ödeme: SHOPIER — yazıldı, canlı anahtarla denenmedi
+**İyzico 2026-08-22'de tamamen kaldırıldı** (kullanıcı kararı). Sebebi ikili:
+Culinora'nın üye işyerini paylaşmak, o hesap dondurulursa **Culinora'nın
+tahsilatını da durdururdu**; ve Shopier bireysel satıcıya açık, yani tüzel
+kişilik beklemeden tahsilata başlanabiliyor — projenin 1 numaralı tıkanıklığı.
+İyzico kodu git geçmişinde duruyor, geri lazım olursa oradan.
 
-⚠️ **İki ürün tek üye işyeri.** Iyzico üye işyeri sözleşmesi beyan edilen alan
-adına bağlıdır; `tabela.lol` panelde tanımlı değilse oradan gelen işlem hesabı
-dondurabilir — ve o hesap dondurulursa **Culinora'nın tahsilatı da durur**.
-Vercel'e anahtar girmeden önce Iyzico panelinden alan adını ekle.
+**Akış:** `placeBid` → Bid PENDING + tek kullanımlık jeton → kullanıcı
+`/odeme/[jeton]` sayfasına gider → form Shopier'e POST edilir → Shopier
+`/api/shopier/callback`'e POST eder → imza doğrulanır → `applyPaidBid`.
 
-Akışın kendisi (`odemeBaslat` → Checkout Form → callback → `applyPaidBid`)
-**hâlâ tek bir kez bile çalıştırılmadı**. `PAYMENT_MODE="live"` yapılıp küçük
-tutarlı gerçek bir ödemeyle doğrulanması şart.
+Bilinçli kararlar ve tuzaklar:
 
-Akış: `placeBid` → Bid PENDING → Checkout Form → kullanıcı öder → İyzico
-callback'e POST eder → `odemeDogrula` (token ile geri sorulur, gelen POST'a
-güvenilmez) → `applyPaidBid`.
+- **Anahtar: API Key + API Secret.** Shopier'in *kişisel erişim anahtarı*
+  (PAT) ödeme başlatmıyor — o mağaza verisi (ürün/sipariş/koleksiyon) için.
+  Karıştırılması kolay, bir kez karıştırıldı.
+- ⚠️ **Callback adresi istekle GÖNDERİLMİYOR**, Shopier panelinden tanımlanmak
+  zorunda: `https://tabela.lol/api/shopier/callback`. Tanımlı değilse ödeme
+  alınır ama **teklif uygulanmaz** — para alınıp hiçbir şey verilmez. Canlıya
+  almadan önce doğrulanacak ilk madde bu.
+- **Ödeme sayfasının adresi teklif kimliği DEĞİL, tek kullanımlık jeton.**
+  Teklif kimlikleri ilan sayfasının kaynağından okunabiliyor ve o form ilan
+  sahibinin adını/e-postasını taşıyor; kimlikle açılsaydı iletişim bilgisi
+  sızardı. Jeton ödeme sonrası siliniyor.
+- **İyzico'daki "sunucudan geri sorma" adımı YOK.** Güvence tamamen imzada
+  (HMAC-SHA256, `random_nr + platform_order_id + total_order_value + currency`).
+  Bu yüzden callback üç kapıdan geçiriyor: imza geçerli mi, durum başarılı mı,
+  tutar beklediğimiz mi. Üçü de geçmeden hiçbir teklif uygulanmıyor.
+- İmza **gelen değerler üzerinden** yeniden hesaplanıyor (biçim farkı
+  doğrulamayı kırmasın); tutarın doğruluğu ayrı bir sayısal karşılaştırmayla.
+- Kart bilgisi hiçbir aşamada sunucumuza dokunmuyor → PCI SAQ-A.
+- ⚠️ Adres toplamıyoruz; Shopier'e sabit posta kodu gidiyor. İyzico'daki
+  uydurma TCKN'nin eşdeğeri, fraud skorlamasını etkileyebilir.
 
-Anahtarlar geldiğinde ilk iş: **küçük tutarlı gerçek bir ödeme** ve callback'in
-gerçekten geldiğinin teyidi.
-
-Bilinçli kararlar:
-- **Hosted Checkout Form + 3DS.** Kart bilgisi sunucumuza dokunmuyor → PCI
-  SAQ-A (SAQ-D değil), chargeback sorumluluğu bankada. Culinora'da kendi form +
-  non-3D kaldı çünkü orada çalışan bir akış vardı; burada öyle bir miras yok.
-- **Para tahsil edildiyse teklif her zaman uygulanır.** Ödeme sırasında başkası
-  öne geçtiyse kullanıcı parasını boşa vermez, tutarının hak ettiği sıraya
-  oturur. Parayı alıp hiçbir şey vermemek yok.
-- `identityNumber` sabit gönderiliyor — TCKN toplamıyoruz (KVKK). ⚠️ İyzico
-  fraud skorlamasını etkileyebilir, üye işyeri açılışında sorulmalı.
+**Canlı anahtarla tek bir kez bile çalıştırılmadı.** Anahtarlar geldiğinde ilk
+iş: panelde callback adresini tanımla, sonra küçük tutarlı gerçek bir ödeme.
 
 ### 4. Sahiplik doğrulaması YOK — bilinçli karar (2026-08-21)
 İlan verirken hesap sahipliği doğrulanmıyor, sürtünmeyi kaldırmak için.

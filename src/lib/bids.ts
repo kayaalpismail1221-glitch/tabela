@@ -1,25 +1,26 @@
+import { randomBytes } from 'crypto'
 import { after } from 'next/server'
 import { prisma } from './prisma'
 import { SIRALAMA } from './board'
 import { usteCikildiBildir } from './outbid'
 import { checkBid } from './rules'
 import { linkLabel } from './links'
-import { cityName } from './cities'
-import { IYZICO_HAZIR, odemeBaslat } from './iyzico'
+import { SHOPIER_HAZIR } from './shopier'
 
 /**
  * Odeme kesme noktasi — TEK GIRIS.
  *
- * TEST MODU (`PAYMENT_MODE !== 'live'` ya da Iyzico anahtarlari yok):
+ * TEST MODU (`PAYMENT_MODE !== 'live'` ya da Shopier anahtarlari yok):
  *   teklif aninda PAID sayilir, para istenmez. Gelistirme icin.
  *
  * CANLI:
- *   Bid PENDING yazilir -> Iyzico Checkout Form -> kullanici oder ->
- *   Iyzico callback -> odemeDogrula -> applyPaidBid.
+ *   Bid PENDING yazilir + tek kullanimlik jeton -> kullanici `/odeme/[jeton]`
+ *   sayfasina gider -> form Shopier'e POST edilir -> Shopier callback'e POST
+ *   eder -> imza dogrulanir -> applyPaidBid.
  *
  * applyPaidBid tek uygulama noktasidir; callback iki kez gelse de bir kez isler.
  */
-export const TEST_MODU = process.env.PAYMENT_MODE !== 'live' || !IYZICO_HAZIR
+export const TEST_MODU = process.env.PAYMENT_MODE !== 'live' || !SHOPIER_HAZIR
 
 export type PlaceResult =
   | { ok: true; applied: true; listingId: string; bidId: string; paid: number; rank: number }
@@ -77,12 +78,11 @@ export async function placeBid(
     return { ok: true, applied: true, listingId: listing.id, bidId: bid.id, paid: check.paid, rank }
   }
 
-  // --- Canli: Iyzico odeme formu ---
+  // --- Canli: Shopier ---
   if (!ctx) return { ok: false, error: 'Ödeme başlatılamadı.' }
 
-  // Alici bilgisi olmadan Iyzico'ya UYDURMA veri gondermiyoruz: fraud
-  // skorlamasini bozar ve fatura kesilemez. Odeme canliya alinirken ilan
-  // formuna ya da odeme oncesi bir adima e-posta alani geri konulmali.
+  // Alici bilgisi olmadan odeme baslatmiyoruz: Shopier alici adi/e-postasi
+  // istiyor, uydurma veri fatura ve fraud tarafini bozar.
   if (!listing.ownerName || !listing.ownerEmail) {
     await prisma.bid.update({
       where: { id: bid.id },
@@ -91,39 +91,19 @@ export async function placeBid(
     return { ok: false, error: 'Ödeme için iletişim bilgisi gerekiyor.' }
   }
 
-  try {
-    const res = await odemeBaslat({
-      bidId: bid.id,
-      kurus: check.paid,
-      listingName: listing.name,
-      callbackUrl: `${ctx.origin}/api/iyzico/callback`,
-      alici: {
-        ad: listing.ownerName,
-        email: listing.ownerEmail,
-        telefon: listing.ownerPhone,
-        sehir: cityName(listing.city),
-        ip: ctx.ip,
-      },
-    })
+  // Tek kullanimlik jeton. Odeme sayfasinin adresi teklif kimligi OLAMAZ:
+  // teklif kimlikleri ilan sayfasinin kaynagindan okunabiliyor ve o sayfa
+  // formda ilan sahibinin adini/e-postasini tasiyor — herkese acik bir
+  // adres olsa iletisim bilgisi sizardi.
+  const jeton = randomBytes(24).toString('base64url')
+  await prisma.bid.update({ where: { id: bid.id }, data: { paymentToken: jeton } })
 
-    if (res.status !== 'success' || !res.paymentPageUrl || !res.token) {
-      await prisma.bid.update({
-        where: { id: bid.id },
-        data: { status: 'FAILED', failureCode: res.errorCode, failureMsg: res.errorMessage },
-      })
-      // Ham Iyzico mesajini musteriye gostermiyoruz; sebep kayitta duruyor.
-      return { ok: false, error: 'Ödeme sayfası açılamadı. Kısa süre sonra tekrar deneyin.' }
-    }
-
-    await prisma.bid.update({ where: { id: bid.id }, data: { paymentToken: res.token } })
-
-    return { ok: true, applied: false, bidId: bid.id, paid: check.paid, paymentUrl: res.paymentPageUrl }
-  } catch {
-    await prisma.bid.update({
-      where: { id: bid.id },
-      data: { status: 'FAILED', failureCode: 'NETWORK', failureMsg: 'Iyzico erisilemedi' },
-    })
-    return { ok: false, error: 'Ödeme sağlayıcısına ulaşılamadı.' }
+  return {
+    ok: true,
+    applied: false,
+    bidId: bid.id,
+    paid: check.paid,
+    paymentUrl: `${ctx.origin}/odeme/${jeton}`,
   }
 }
 
