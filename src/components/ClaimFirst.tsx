@@ -16,12 +16,20 @@ import { useRouter } from 'next/navigation'
  *
  * Ekran metninde "taht" kelimesi kullanilmiyor (2026-08-22 kullanici karari) —
  * memleket.lol'un dili, calinti duruyor. Bizim dilimiz isletme dili: "1 numara".
+ *
+ * ⚠️ `soz` (ne kadardir 1 numara oldugu) `null` olabilir — `Listing.topSince`
+ * yalnizca GERCEK odeme akisindan gecen tekliflerde dolduruluyor
+ * (`tahtiGuncelle`, bkz. bids.ts). Eski/elle olusturulmus bir kayit hala
+ * 1 numaraysa ama topSince bos kaldiysa "1 numara YOK" demek YANLIS olur —
+ * bir kere gercekten yasandi (2026-08-22). `zirve` var oldugu surece ismi
+ * her zaman gosterilir, sure bilgisi varsa eklenir.
  */
 export function ClaimFirst({
   zirve,
 }: {
-  /** 1 numarayi su an kim tutuyor. `soz` sunucuda hesaplandi (hidrasyon icin). */
-  zirve?: { id: string; name: string; soz: string } | null
+  /** 1 numarayi su an kim tutuyor. `soz` sunucuda hesaplandi (hidrasyon icin);
+   *  ne kadardir tuttugu bilinmiyorsa null. */
+  zirve?: { id: string; name: string; soz: string | null } | null
 }) {
   const router = useRouter()
 
@@ -39,7 +47,7 @@ export function ClaimFirst({
           <Link href={`/ilan/${zirve.id}`} className="font-bold text-text hover:text-neon">
             {zirve.name}
           </Link>
-          {' '}— {zirve.soz}.
+          {zirve.soz && <> — {zirve.soz}</>}.
         </p>
       ) : (
         <p className="mt-5 text-base text-muted sm:text-lg">
@@ -48,8 +56,8 @@ export function ClaimFirst({
       )}
 
       <p className="mx-auto mt-3 max-w-lg text-balance text-sm text-muted">
-        Hem Türkiye&apos;nin hem şehrinin tahtasında birden görünürsün. Küçük şehirde 1 numara
-        olmak, büyük şehirde 40. olmaktan iyidir.
+        Hem Türkiye&apos;nin hem de şehrinin tahtasında görünürsün. Küçük şehirde 1 numara olmak,
+        büyük şehirde 40. olmaktan iyidir.
       </p>
 
       <button

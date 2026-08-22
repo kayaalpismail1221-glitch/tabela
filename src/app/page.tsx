@@ -61,8 +61,8 @@ export default async function HomePage({ searchParams }: PageProps<'/'>) {
         <div className="mt-6">
           <ClaimFirst
             zirve={
-              zirve && zirve.topSince
-                ? { id: zirve.id, name: zirve.name, soz: tahtSozu(zirve.topSince) }
+              zirve
+                ? { id: zirve.id, name: zirve.name, soz: zirve.topSince ? tahtSozu(zirve.topSince) : null }
                 : null
             }
           />
