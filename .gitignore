@@ -46,3 +46,5 @@ prisma/dev.db-journal
 
 # ornek env dosyasi repoda kalsin (icinde deger yok, sadece anahtar adlari)
 !.env.example
+
+.vercel
