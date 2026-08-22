@@ -137,15 +137,24 @@ Anasayfadaki/şehir tahtasındaki **"Yükselt" pilli** (`Board.tsx`) her zaman
 `/ilan/{id}`'e gider — tıklayan sahip mi değil mi bilmiyoruz, o yüzden
 kapıyı sayfa açık, karar orada veriliyor.
 
-## Tahta satırı tıklama davranışı (Gemini, 2026-08-22)
+## Tahta satırı tıklama davranışı (Gemini 06da420, düzeltme 6c3686f)
 
 Kart/satırın TAMAMI görünmez bir `<a href="/git/{id}" target="_blank">` ile
-kaplı (z-index en altta) — **sıralamada nereye tıklarsan tıkla, devral/yükselt
-pili DIŞINDA, işletmenin gerçek sitesine/Instagram'ına gidersin**. "Yükselt"
-pili ayrı bir z-index katmanında, üstte durur, kendi linkine gider
-(`/ilan/{id}`). `/git/{id}` tıklama sayacını da artırıyor. Bu Gemini'nin aynı
-turda yaptığı bir değişiklik (commit `06da420`); sunucu tarafı doğrulandı
-(`/git/{id}` 307 ile doğru adrese yönlendiriyor).
+kaplı — **sıralamada nereye tıklarsan tıkla, "Yükselt" pili DIŞINDA,
+işletmenin gerçek sitesine/Instagram'ına gidersin**. `/git/{id}` tıklama
+sayacını da artırıyor.
+
+⚠️ **Tuzak, bir kez gerçekten yaşandı:** Gemini'nin ilk hâlinde görünmez link
+`z-0`, üstündeki TÜM içerik (isim, açıklama, rozet, avatar) `relative z-10`
+idi. Pozisyonlanmış (`position != static`) elemanlar z-index'ten BAĞIMSIZ
+olarak normal akıştaki elemanların her zaman üstünde tıklamayı yakalar — yani
+görünen her alan linkten önce kendi üstüne alıyordu, yalnızca elemanlar
+ARASINDAKI boşluklar gerçekten tıklanabiliyordu. **Kural:** içerik düz akışta
+kalsın (`position` verilmesin), yalnız "Yükselt" linki kendi hedefine
+(`/ilan/{id}`) gitsin diye `relative z-10` ile bu overlay'in üstüne çıkar.
+Yeni bir eleman eklerken bu ikisinden birini bozarsan aynı hata geri gelir —
+`document.elementFromPoint()` ile üzerine gelinen her görünür alanda gerçekten
+`<a href="/git/...">` döndüğünü doğrula.
 
 ## Değişmez kurallar
 
