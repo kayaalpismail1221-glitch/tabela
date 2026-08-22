@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import type { Row } from '@/lib/board'
 import { cityName } from '@/lib/cities'
-import { tl, since, tahtSozu } from '@/lib/format'
+import { tl, tahtSozu } from '@/lib/format'
 import { Avatar } from './Avatar'
 
 /**
@@ -20,8 +20,6 @@ const VURGU = [
 function Zaman({ row }: { row: Row }) {
   return (
     <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
-      {row.lastBidAt && <span>{since(row.lastBidAt)}</span>}
-      {row.lastBidAt && <span className="text-neon/60">•</span>}
       <span className="font-bold text-text/70">
         {row.clickCount.toLocaleString('tr-TR')} tıklama
       </span>

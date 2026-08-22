@@ -48,6 +48,7 @@ tek şey bu ucuz zafer.
 | `src/app/page.tsx` | Genel tahta + harita + şerit + canlı çekişme + Şehir Şampiyonları |
 | `src/components/PopulerSerit.tsx` | "Şehrin popülerleri" — kesintisiz akan şerit |
 | `src/components/Sayfalama.tsx` | Sayfa gez/geri — `?sayfa=N`, 50'de bir |
+| `src/components/LogoKirp.tsx` | Logo kırpma modalı — sürükle/yakınlaştır, "Kullan" demeden kaydetmez |
 | `src/app/api/site-bilgisi` | Adresten ad/açıklama/logo çeker ("Bilgileri çek") |
 | `src/app/[sehir]/` | Şehir tahtası (81 il, `cities.ts` slug'ları) |
 | `src/app/ilan/[id]/` | İlan detayı + teklif yükseltme + rozet |
@@ -365,6 +366,17 @@ Kurucu fikir: **formu kullanıcı doldurmasın.** Adres yapıştırılınca
 kalıyor. Sürtünme, tahtayı boş bırakan tek şey.
 
 - Çekilen değerler kullanıcının yazdığını **ezmez**, yalnızca boş alanı doldurur.
+- **Galeriden seçilen fotoğraf otomatik kırpılmıyor — `LogoKirp.tsx`
+  (2026-08-22).** Önceden merkezden kare kırpıyordu; logo fotoğrafın
+  ortasında değilse yanlış parça kesiliyordu ve düzeltecek yol yoktu
+  ("millet tam seçemiyor" — kullanıcı geri bildirimi). Şimdi dosya seçilince
+  bir modal açılıyor: kullanıcı sürükleyip (Pointer Events — fare ve
+  dokunmatik aynı kod) gerekirse yakınlaştırıp kareyi kendi seçiyor,
+  "Kullan" demeden hiçbir şey kaydedilmiyor. `gorselKucult.ts` üçe bölündü:
+  `gorselYukle` (dosya → Image), `kareyeSikistir` (seçilen kare → sıkıştırılmış
+  data URI, eski mantık), `gorselKucult` (ikisinin otomatik-ortala sarmalayıcısı
+  — artık yalnızca yedek yol). Tarayıcıda hem masaüstü hem mobil boyutta,
+  gerçek bir sürükleme ile doğrulandı.
 - Amblem sırası: elle verilen **logo adresi** > formda çekilmiş amblem >
   sitenin kendi logosu. Elle verilen adres de indirilip data URI'ye çevrilir —
   uzak adres saklanırsa karşı taraf hotlink engellediğinde amblem kırılır.

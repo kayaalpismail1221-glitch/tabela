@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { CITIES } from '@/lib/cities'
 import { tl } from '@/lib/format'
 import { TABAN_TEKLIF, MIN_ARTIS } from '@/lib/rules'
-import { gorselKucult } from '@/lib/gorselKucult'
+import { gorselYukle } from '@/lib/gorselKucult'
+import { LogoKirp } from './LogoKirp'
 import { RankPreview } from './RankPreview'
 import { PaymentMarks } from './PaymentMarks'
 
@@ -36,6 +37,7 @@ export function ListingForm({
   const [description, setDescription] = useState('')
   const [logo, setLogo] = useState<string | null>(null) // cekilen amblem (data URI)
   const [logoUrl, setLogoUrl] = useState('') // elle yapistirilan adres
+  const [kirpGorseli, setKirpGorseli] = useState<HTMLImageElement | null>(null) // kirpma modali acikken yuklu foto
   const [ownerName, setOwnerName] = useState('')
   const [ownerEmail, setOwnerEmail] = useState('')
   const [lira, setLira] = useState(String(defaultLira ?? TABAN_TEKLIF / 100))
@@ -125,6 +127,18 @@ export function ListingForm({
 
   return (
     <form onSubmit={submit} className="space-y-5">
+      {kirpGorseli && (
+        <LogoKirp
+          gorsel={kirpGorseli}
+          onOnayla={(uri) => {
+            setLogo(uri)
+            setLogoUrl('')
+            setKirpGorseli(null)
+          }}
+          onVazgec={() => setKirpGorseli(null)}
+        />
+      )}
+
       <Field label="Bağlantın" hint="Instagram profilin ya da kendi siten — tıklayan oraya gider.">
         <div className="flex gap-2">
           <input
@@ -190,12 +204,13 @@ export function ListingForm({
             className="hidden"
             onChange={async (e) => {
               const file = e.target.files?.[0]
+              e.target.value = '' // ayni dosya tekrar secilince onChange yine tetiklensin
               if (!file) return
-              // Ham fotograf 2-5 MB; sunucudaki amblem siniri 80 KB. Kucultmeden
-              // gonderirsek kullanici sebebini anlamadan logosuz kaliyor.
+              // Otomatik ORTADAN kirpma yerine kullanici hangi karenin amblem
+              // olacagini kendi seciyor (bkz. LogoKirp) — logo fotografin
+              // ortasinda degilse yanlis parca kesilmesin diye.
               try {
-                setLogo(await gorselKucult(file))
-                setLogoUrl('')
+                setKirpGorseli(await gorselYukle(file))
               } catch {
                 setCekmeNotu('Fotoğraf okunamadı, başka bir dosya dene.')
               }
