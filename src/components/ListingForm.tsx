@@ -254,15 +254,6 @@ export function ListingForm({
           />
         </div>
 
-        <input
-          value={ownerPhone}
-          onChange={(e) => setOwnerPhone(e.target.value)}
-          placeholder="Telefon (isteğe bağlı)"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          className="mt-3 w-full rounded-xl border border-line bg-ink px-3 py-3 outline-none focus:border-neon"
-        />
       </div>
 
 
