@@ -1,13 +1,26 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import type { Champion } from '@/lib/board'
 import { HARITA_VIEWBOX, IL_YOLLARI, IL_MERKEZLERI } from '@/lib/turkeyMap'
 import { tl } from '@/lib/format'
+import { priceToPass, TABAN_TEKLIF } from '@/lib/rules'
+import { Avatar } from './Avatar'
 
 /**
  * CANLI HARITA — sehir secmenin gorsel yolu.
  *
- * Tamamen SUNUCUDA ciziliyor: her il duz bir baglanti, vurgu ve il adi CSS
- * :hover. 81 ile tiklama dinleyicisi baglayan bir harita, tahtanin en ucuz
- * olmasi gereken yerinde en pahali seyi olurdu.
+ * ⚠️ Artik CLIENT COMPONENT (2026-08-22 kullanici karari) — onceden "sifir
+ * JS" diye belgelenmisti, bu ARTIK DOGRU DEGIL. Bir ile tiklamak dogrudan
+ * `/{slug}` sayfasina goturmek yerine bir SECIM PENCERESI aciyor: "Ziyaret
+ * et" (o ilin 1 numarasinin gercek sitesine gider) ya da "Devral" (o ilde
+ * 1 numara olmak icin ilan formuna gider, tutar onceden dolu). Boyle olunca
+ * ziyaretci once NE YAPACAGINA karar veriyor, tam sayfa atlamasi olmadan.
+ *
+ * `<a href>` yine de duruyor: JS calismazsa ya da orta-tikla/yeni sekmede
+ * ac gibi tarayici davranislarinda dogrudan sehir sayfasina gider — sadece
+ * SOL TIK'ta pencere acmak icin varsayilan davranis engelleniyor.
  *
  * IKI KATMAN, sebebi onemli: SVG'de z-index yok, boyama sirasi belge sirasi.
  * Amblem ve il adi ILLERLE ayni katmanda olsaydi, plakasi kucuk bir ilin
@@ -34,12 +47,17 @@ export function TurkeyMap({
   champions,
   hacim,
   tahtDegisimi,
+  topBid,
 }: {
   champions: Champion[]
   hacim: number
   /** Tahtin kac kez el degistirdigi — paranin yaninda duran tek drama rakami. */
   tahtDegisimi: number
+  /** Ulusal en yuksek teklif — secim penceresindeki "Devral" bedeli buna gore hesaplanir. */
+  topBid: number
 }) {
+  const [secili, setSecili] = useState<Champion | null>(null)
+
   const enYuksek = champions.reduce((m, c) => Math.max(m, c.listing?.currentBid ?? 0), 0)
   const dolu = champions.filter((c) => c.listing).length
 
@@ -98,7 +116,18 @@ export function TurkeyMap({
                 : 'var(--color-surface-2)'
 
               return (
-                <a key={c.citySlug} href={`/${c.citySlug}`} aria-label={etiket(c)}>
+                <a
+                  key={c.citySlug}
+                  href={`/${c.citySlug}`}
+                  aria-label={etiket(c)}
+                  onClick={(e) => {
+                    // Sol tik: sayfa degistirmek yerine secim penceresi ac.
+                    // Ctrl/Cmd/orta-tik gibi "yeni sekmede ac" istekleri bu
+                    // olayi tetiklemez, tarayici kendi varsayilanina duser.
+                    e.preventDefault()
+                    setSecili(c)
+                  }}
+                >
                   <path d={yol} style={{ fill: dolgu }} />
                 </a>
               )
@@ -150,6 +179,8 @@ export function TurkeyMap({
           </>
         )}
       </p>
+
+      {secili && <IlPenceresi champion={secili} topBid={topBid} onKapat={() => setSecili(null)} />}
     </section>
   )
 }
@@ -157,6 +188,100 @@ export function TurkeyMap({
 /** Uzerine gelince cikan tek satir. Bos ilde davet, dolu ilde rakam. */
 function etiket(c: Champion): string {
   return c.listing ? `${c.cityName} · ${tl(c.listing.currentBid)}` : `${c.cityName} · boş`
+}
+
+/**
+ * Il secim penceresi — "Ziyaret et" ya da "Devral".
+ *
+ * Ziyaretcinin karar vermesi gereken tek soru bu: o ilin 1 numarasini mi
+ * gorecek, yoksa yerini mi alacak. Tam sayfa atlamadan, haritanin uzerinde.
+ */
+function IlPenceresi({
+  champion,
+  topBid,
+  onKapat,
+}: {
+  champion: Champion
+  topBid: number
+  onKapat: () => void
+}) {
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && onKapat()
+    window.addEventListener('keydown', esc)
+    return () => window.removeEventListener('keydown', esc)
+  }, [onKapat])
+
+  const { listing } = champion
+  const devralBedeli = listing ? priceToPass(listing.currentBid, 0, topBid) : TABAN_TEKLIF
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${champion.cityName} — ne yapmak istersin`}
+      onClick={onKapat}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-sm rounded-2xl border border-line bg-surface p-6 text-center"
+      >
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted">
+          {String(champion.plaka).padStart(2, '0')} · {champion.cityName}
+        </p>
+
+        {listing ? (
+          <>
+            <div className="mt-3 flex items-center justify-center gap-3">
+              <Avatar seed={listing.url} label={listing.name} size={44} imageUrl={listing.imageUrl} />
+              <div className="text-left">
+                <div className="font-black leading-tight">{listing.name}</div>
+                <div className="text-sm text-neon">{tl(listing.currentBid)}</div>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-2">
+              <a
+                href={`/git/${listing.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-xl border border-line px-5 py-3 font-bold transition hover:border-neon/60"
+              >
+                Ziyaret et
+              </a>
+              <Link
+                href={`/ilan-ver?sehir=${champion.citySlug}&teklif=${Math.ceil(devralBedeli / 100)}`}
+                className="rounded-xl bg-neon px-5 py-3 font-black text-ink transition hover:brightness-110"
+              >
+                Devral · {tl(devralBedeli)}
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="mt-3 text-sm text-muted">
+              Burası boş. {tl(TABAN_TEKLIF)} ile {champion.cityName}’in 1 numarası olursun.
+            </p>
+
+            <Link
+              href={`/ilan-ver?sehir=${champion.citySlug}`}
+              className="mt-5 block rounded-xl bg-neon px-5 py-3 font-black text-ink transition hover:brightness-110"
+            >
+              Tahtaya çık
+            </Link>
+          </>
+        )}
+
+        <button
+          type="button"
+          onClick={onKapat}
+          className="mt-4 text-xs text-muted underline underline-offset-4 hover:text-text"
+        >
+          Kapat
+        </button>
+      </div>
+    </div>
+  )
 }
 
 /**

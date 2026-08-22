@@ -76,7 +76,7 @@ tek şey bu ucuz zafer.
 | `src/components/VisitorProvider.tsx` | Ziyaretci sayimi — kok yerlesimde, TUM sayfalarda |
 | `src/lib/legal.ts` | Satici kunyesi + yururluk tarihi — yasal metinlerin tek kaynagi |
 | `src/lib/db-url.ts` | Baglanti dizesi degisken adi cozumleme — tek yer |
-| `src/components/TurkeyMap.tsx` | **Canlı harita** — anasayfada şehir seçici, sıfır JS |
+| `src/components/TurkeyMap.tsx` | **Canlı harita** — anasayfada şehir seçici, tıklayınca devral/ziyaret pop-up'ı |
 | `src/lib/turkeyMap.ts` | 81 ilin SVG yol verisi (turkey-map-react, MIT) + viewBox |
 | `src/lib/cities.ts` | 81 il, plaka sırasında |
 | `src/lib/links.ts` | Bağlantı çözümleme — Instagram mı site mi, tek yerde |
@@ -400,10 +400,26 @@ kalıyor. Sürtünme, tahtayı boş bırakan tek şey.
 
 ## Canlı harita
 
-Anasayfada, Şehir Şampiyonları'nın hemen üstünde. **Tamamen sunucuda çiziliyor:**
-her il düz bir `<a>`, ipucu yerel `<title>`, vurgu CSS `:hover`. 81 ile tıklama
-dinleyicisi bağlayan bir harita, tahtanın en ucuz olması gereken yerinde en
-pahalı şeyi olurdu.
+Anasayfada, hero'nun hemen altında (81 ilin sınır çizimi hâlâ **sunucuda**
+üretiliyor — her il düz bir `<path>`, ipucu yerel `<title>`, vurgu CSS
+`:hover`, 81 ile tıklama dinleyicisi bağlayan bir harita olmasın diye).
+
+⚠️ **Ama artık `'use client'` — 2026-08-22 kullanıcı kararı.** Önceden burada
+"sıfır JS, bir ile tıklamak dogrudan `/{slug}`'a gider" yazıyordu; bu ARTIK
+DOĞRU DEĞİL. Bir ile tıklamak şimdi bir **seçim penceresi** açıyor:
+- Dolu ilse → **"Ziyaret et"** (`/git/{id}`, yeni sekme — o ilin 1 numarasının
+  gerçek sitesine gider) + **"Devral · {tutar}"** (`/ilan-ver?sehir=...&teklif=...`
+  — `priceToPass(listing.currentBid, 0, topBid)` ile hesaplanan, o ili almaya
+  yeten tutar önceden dolu).
+- Boşsa → tek buton: **"Tahtaya çık"** (`/ilan-ver?sehir=...`, taban teklifle).
+
+`<a href="/{slug}">` yine de duruyor: sol tık `preventDefault()` ile
+yakalanıp pencere açılıyor, ama orta-tıkla-yeni-sekmede-aç / Ctrl+tık gibi
+tarayıcı davranışları bu olayı tetiklemediği için hâlâ doğrudan şehir
+sayfasına gider — JS'siz bir fallback olarak kalıyor.
+
+Pencere `Zafer.tsx`/`LogoKirp.tsx` ile aynı modal kalıbını kullanıyor
+(`fixed inset-0 z-50 ... bg-ink/90 backdrop-blur-sm`, Escape ile kapanır).
 
 - **Renk = o ilin 1 numarasının teklifi.** Boş il karanlık kalır; karanlık il
   "burası boş" demenin en kısa yolu ve satılan şey o boşluk. Dolu iller

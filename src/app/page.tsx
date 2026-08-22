@@ -5,6 +5,7 @@ import {
   getCityChampions,
   getActivity,
   getZirve,
+  getTopBid,
 } from '@/lib/board'
 import { Board } from '@/components/Board'
 import { Sayfalama } from '@/components/Sayfalama'
@@ -45,12 +46,13 @@ export default async function HomePage({ searchParams }: PageProps<'/'>) {
     ? Math.min(Math.max(1, Math.floor(istenenSayfa)), toplamSayfa)
     : 1
 
-  const [rows, champions, activity, rakamlar, zirve] = await Promise.all([
+  const [rows, champions, activity, rakamlar, zirve, topBid] = await Promise.all([
     getBoard(undefined, SAYFA_BOYU, (sayfa - 1) * SAYFA_BOYU),
     getCityChampions(),
     getActivity(20),
     ziyaretiKaydet(),
     getZirve(),
+    getTopBid(),
   ])
 
   return (
@@ -81,6 +83,7 @@ export default async function HomePage({ searchParams }: PageProps<'/'>) {
           champions={champions}
           hacim={rakamlar.hacim}
           tahtDegisimi={rakamlar.tahtDegisimi}
+          topBid={topBid}
         />
       </div>
 
