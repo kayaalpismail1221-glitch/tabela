@@ -8,7 +8,7 @@
 export const TABAN_TEKLIF = 10_000 // 100 TL
 
 /** Kendi ilanini yukseltirken zorunlu en kucuk artis. */
-export const MIN_ARTIS = 2_500 // 25 TL
+export const MIN_ARTIS = 5_000 // 50 TL
 
 /** 1 numarayi almak icin mevcut liderin en az bu kadar ustune cikmak gerekir.
  *  Ufak artislarla zirveyi taciz etmeyi engeller. */
