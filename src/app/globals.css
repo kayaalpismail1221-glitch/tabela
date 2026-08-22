@@ -79,3 +79,22 @@ input[type='number']::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+/* Canli harita. Etkilesimin tamami CSS: 81 ile JS dinleyicisi baglamiyoruz. */
+.harita path {
+  stroke: var(--color-line);
+  stroke-width: 0.8;
+  transition:
+    filter 0.15s ease,
+    stroke 0.15s ease;
+}
+.harita a:hover path,
+.harita a:focus-visible path {
+  filter: brightness(1.7);
+  stroke: var(--color-neon);
+  stroke-width: 1.6;
+}
+.harita a {
+  cursor: pointer;
+  outline: none;
+}

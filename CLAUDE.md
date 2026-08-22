@@ -66,6 +66,8 @@ tek şey bu ucuz zafer.
 | `src/components/VisitorProvider.tsx` | Ziyaretci sayimi — kok yerlesimde, TUM sayfalarda |
 | `src/lib/legal.ts` | Satici kunyesi + yururluk tarihi — yasal metinlerin tek kaynagi |
 | `src/lib/db-url.ts` | Baglanti dizesi degisken adi cozumleme — tek yer |
+| `src/components/TurkeyMap.tsx` | **Canlı harita** — anasayfada şehir seçici, sıfır JS |
+| `src/lib/turkeyMap.ts` | 81 ilin SVG yol verisi (turkey-map-react, MIT) + viewBox |
 | `src/lib/cities.ts` | 81 il, plaka sırasında |
 | `src/lib/links.ts` | Bağlantı çözümleme — Instagram mı site mi, tek yerde |
 | `public/fonts/` | Inter woff dosyaları — **sadece rozet için** |
@@ -223,6 +225,29 @@ sonra deploy.
 ⚠️ Canlı veritabanında şema var ama **0 ilan**. `npm run db:seed` uydurma
 restoran isimleri basar — canlıda çalıştırılıp çalıştırılmayacağı ürün kararı,
 kendiliğinden yapılmadı.
+
+## Canlı harita
+
+Anasayfada, Şehir Şampiyonları'nın hemen üstünde. **Tamamen sunucuda çiziliyor:**
+her il düz bir `<a>`, ipucu yerel `<title>`, vurgu CSS `:hover`. 81 ile tıklama
+dinleyicisi bağlayan bir harita, tahtanın en ucuz olması gereken yerinde en
+pahalı şeyi olurdu.
+
+- **Renk = o ilin 1 numarasının teklifi.** Boş il karanlık kalır; karanlık il
+  "burası boş" demenin en kısa yolu ve satılan şey o boşluk. Dolu iller
+  `color-mix` ile neon'a doğru ısınıyor (%30'dan başlar ki en ucuzu bile görünsün).
+- **Yol verisi `src/lib/turkeyMap.ts`** — turkey-map-react v2.0.6'dan (MIT,
+  © 2020 Erdi Gökçe) alındı, paket bağımlılık olarak **eklenmedi**: bize yalnız
+  path lazımdı. Lisans metni dosyanın başında, kaldırma.
+- **Anahtar plaka numarası**, il adı değil: adların yazımı kaynaktan kaynağa
+  değişiyor (Afyon/Afyonkarahisar), plaka değişmiyor. Ad ve slug her zaman
+  `src/lib/cities.ts`'ten.
+- **`HARITA_VIEWBOX` kaynağın varsayılanı değil.** Paketin verdiği
+  `80 0 1050 585` üstte 144 birim boşluk bırakıp solu ve güneyi kırpıyordu;
+  değer 81 ilin birleşik sınır kutusundan hesaplandı. Yol verisi değişirse
+  yeniden hesapla.
+- ⚠️ Mobilde iller **tıklamak için küçük**. Bilinçli: harita orada bir tablo,
+  seçim işini altındaki Şehir Şampiyonları ızgarası görüyor.
 
 ## Notlar
 

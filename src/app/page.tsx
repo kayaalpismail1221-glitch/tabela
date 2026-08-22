@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getBoard, getCityChampions, getActivity, getTopBid, getZirve } from '@/lib/board'
 import { Board } from '@/components/Board'
 import { CityChampions } from '@/components/CityChampions'
+import { TurkeyMap } from '@/components/TurkeyMap'
 import { ActivityFeed } from '@/components/ActivityFeed'
 import { LivePill } from '@/components/LivePill'
 import { ClaimFirst } from '@/components/ClaimFirst'
@@ -67,6 +68,10 @@ export default async function HomePage() {
             initial={activity.map((a) => ({ ...a, createdAt: a.createdAt.toISOString() }))}
           />
         </div>
+      </div>
+
+      <div className="mt-16">
+        <TurkeyMap champions={champions} />
       </div>
 
       <div className="mt-16">
