@@ -179,13 +179,34 @@ export function ListingForm({
         </div>
       </div>
 
-      <Field label="Logo adresi" hint="İsteğe bağlı. Boş bırakırsan sitenden çekmeye çalışırız.">
-        <input
-          value={logoUrl}
-          onChange={(e) => setLogoUrl(e.target.value)}
-          placeholder="https://siten.com/logo.png"
-          className="w-full rounded-xl border border-line bg-ink px-3 py-3 outline-none focus:border-neon"
-        />
+      <Field label="Logo" hint="Galeriden yükle veya adres yapıştır.">
+        <div className="flex gap-2">
+          <input
+            value={logoUrl}
+            onChange={(e) => setLogoUrl(e.target.value)}
+            placeholder="https://siten.com/logo.png"
+            className="w-full rounded-xl border border-line bg-ink px-3 py-3 outline-none focus:border-neon"
+          />
+          <label className="flex shrink-0 cursor-pointer items-center gap-1 rounded-xl border border-line bg-ink px-3 py-3 text-sm text-muted hover:border-neon hover:text-text">
+            📷
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (!file) return
+                const reader = new FileReader()
+                reader.onload = () => {
+                  const result = reader.result as string
+                  setLogo(result)
+                  setLogoUrl('')
+                }
+                reader.readAsDataURL(file)
+              }}
+            />
+          </label>
+        </div>
       </Field>
 
       <div className="grid gap-5 sm:grid-cols-2">
