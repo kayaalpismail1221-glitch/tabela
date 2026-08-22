@@ -159,25 +159,23 @@ function Ayrac({ etiket }: { etiket: string }) {
 }
 
 /**
- * `kesit` anasayfa icin: harita "populer 3"un hemen altinda duracak, bu yuzden
- * tahta ikiye bolunebiliyor. Sehir sayfasi tek parca kullaniyor.
+ * Bir sayfadaki BUYUK kart sayisi. 10 — ilk sayfanin "populer 3"unden
+ * genisletildi (2026-08-22 karari): tahtanin en gorunur kismi buyudu.
  */
+const BUYUK_SAYISI = 10
+
 export function Board({
   rows,
   showCity = true,
   bosMesaj = 'İlk ilanı veren 1 numara olur.',
-  ayracEtiketi = 'İlk 3',
-  kesit = 'hepsi',
+  ayracEtiketi = 'İlk 10',
 }: {
   rows: Row[]
   showCity?: boolean
   bosMesaj?: string
   ayracEtiketi?: string
-  kesit?: 'hepsi' | 'ust' | 'alt'
 }) {
   if (!rows.length) {
-    // Bos tahtanin daveti bir kez gorunsun; alt kesit sessiz kalir.
-    if (kesit === 'alt') return null
     return (
       <div className="rounded-2xl border border-dashed border-line p-10 text-center">
         <p className="text-lg font-bold">Burası henüz boş.</p>
@@ -192,25 +190,28 @@ export function Board({
     )
   }
 
-  const ilkUc = rows.slice(0, 3)
-  const gerisi = rows.slice(3)
-
-  if (kesit === 'alt' && !gerisi.length) return null
+  // rows sayfalanmis gelebiliyor (bkz. getBoard skip); 2. sayfada "ilk 10"
+  // kurali GECERLI DEGIL — buyuk kart yalniz sayfanin gercekten basiysa
+  // (rank 1'den basliyorsa) gosterilir, yoksa 51-60 gibi bir aralik da
+  // "buyuk" gorunup yanlis bir ust siralama iddia ederdi.
+  const sayfaBasiMi = rows[0]?.rank === 1
+  const buyukler = sayfaBasiMi ? rows.slice(0, BUYUK_SAYISI) : []
+  const gerisi = sayfaBasiMi ? rows.slice(BUYUK_SAYISI) : rows
 
   return (
     <div>
-      {kesit !== 'alt' && (
+      {buyukler.length > 0 && (
         <div className="space-y-3">
-          {ilkUc.map((r) => (
+          {buyukler.map((r) => (
             <TopCard key={r.id} row={r} showCity={showCity} />
           ))}
         </div>
       )}
 
-      {/* Ayrac ilk uc DOLDUGUNDA anlamli; iki ilanlik tahtada gurultu olur */}
-      {kesit !== 'ust' && ilkUc.length === 3 && <Ayrac etiket={ayracEtiketi} />}
+      {/* Ayrac buyukler DOLDUGUNDA anlamli; kucuk bir tahtada gurultu olur */}
+      {buyukler.length === BUYUK_SAYISI && gerisi.length > 0 && <Ayrac etiket={ayracEtiketi} />}
 
-      {kesit !== 'ust' && gerisi.length > 0 && (
+      {gerisi.length > 0 && (
         <div className="overflow-hidden rounded-2xl border border-line bg-surface/40">
           {gerisi.map((r) => (
             <BoardRow key={r.id} row={r} showCity={showCity} />

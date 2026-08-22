@@ -1,6 +1,13 @@
 import Link from 'next/link'
-import { getBoard, getCityChampions, getActivity, getZirve } from '@/lib/board'
+import {
+  getBoard,
+  getBoardToplam,
+  getCityChampions,
+  getActivity,
+  getZirve,
+} from '@/lib/board'
 import { Board } from '@/components/Board'
+import { Sayfalama } from '@/components/Sayfalama'
 import { CityChampions } from '@/components/CityChampions'
 import { TurkeyMap } from '@/components/TurkeyMap'
 import { PopulerSerit } from '@/components/PopulerSerit'
@@ -13,6 +20,9 @@ import { tahtSozu } from '@/lib/format'
 
 export const dynamic = 'force-dynamic'
 
+/** Sayfa basina ilan — "Turkiye Top" 50'lik dilimler halinde ilerliyor. */
+const SAYFA_BOYU = 50
+
 /**
  * Ziyaretciyi sunucuda da isaretliyoruz: aksi halde ilk boyamada ziyaret
  * HENUZ kaydedilmedigi icin "0 kisi burada" gorunup saniye sonra 1'e
@@ -24,18 +34,24 @@ async function ziyaretiKaydet() {
   return ziyaretKaydet(ip, h.get('user-agent') ?? 'yok')
 }
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: PageProps<'/'>) {
+  const sp = await searchParams
+  const istenenSayfa = Number(typeof sp.sayfa === 'string' ? sp.sayfa : 1)
+
+  const toplam = await getBoardToplam()
+  const toplamSayfa = Math.max(1, Math.ceil(toplam / SAYFA_BOYU))
+  // Gecersiz/asiri buyuk sayfa numarasi son sayfaya dusuyor, 404 yerine.
+  const sayfa = Number.isFinite(istenenSayfa)
+    ? Math.min(Math.max(1, Math.floor(istenenSayfa)), toplamSayfa)
+    : 1
+
   const [rows, champions, activity, rakamlar, zirve] = await Promise.all([
-    getBoard(undefined, 50),
+    getBoard(undefined, SAYFA_BOYU, (sayfa - 1) * SAYFA_BOYU),
     getCityChampions(),
     getActivity(20),
     ziyaretiKaydet(),
     getZirve(),
   ])
-
-  // Populer 3'ten sonrasi varsa alt tahta canli akisin yanina giriyor;
-  // yoksa akis tek basina tam genislik alir (bos sutun birakmiyoruz).
-  const kalanVar = rows.length > 3
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
@@ -59,13 +75,8 @@ export default async function HomePage() {
         </p>
       </section>
 
-      {/* Populer 3 */}
+      {/* Harita — anasayfanin en ustunde, tahtanin durumunu ilk gozle gorulen sey */}
       <div className="mt-12">
-        <Board rows={rows} kesit="ust" />
-      </div>
-
-      {/* Harita — populer 3'un hemen alti */}
-      <div className="mt-10">
         <TurkeyMap
           champions={champions}
           hacim={rakamlar.hacim}
@@ -73,28 +84,27 @@ export default async function HomePage() {
         />
       </div>
 
-      <div className="mt-10">
-        <PopulerSerit champions={champions} />
-      </div>
+      {/* Turkiye Top — haritanin hemen alti. Ilk 10 buyuk kart, 50'ye kadar
+          sayfalanir; canli cekisme yaninda sabit durur. */}
+      <section className="mt-12">
+        <h2 className="text-2xl font-black">Türkiye Top</h2>
 
-      <div
-        className={
-          kalanVar
-            ? 'mt-12 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]'
-            : 'mt-12 grid grid-cols-1 gap-6'
-        }
-      >
-        {kalanVar && (
+        <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
           <div>
-            <Board rows={rows} kesit="alt" ayracEtiketi="Türkiye ilk 3" />
+            <Board rows={rows} />
+            <Sayfalama sayfa={sayfa} toplamSayfa={toplamSayfa} taban="/" />
           </div>
-        )}
 
-        <div className="lg:sticky lg:top-20 lg:self-start">
-          <ActivityFeed
-            initial={activity.map((a) => ({ ...a, createdAt: a.createdAt.toISOString() }))}
-          />
+          <div className="lg:sticky lg:top-20 lg:self-start">
+            <ActivityFeed
+              initial={activity.map((a) => ({ ...a, createdAt: a.createdAt.toISOString() }))}
+            />
+          </div>
         </div>
+      </section>
+
+      <div className="mt-16">
+        <PopulerSerit champions={champions} />
       </div>
 
       <div className="mt-16">

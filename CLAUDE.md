@@ -47,6 +47,7 @@ tek şey bu ucuz zafer.
 |---|---|
 | `src/app/page.tsx` | Genel tahta + harita + şerit + canlı çekişme + Şehir Şampiyonları |
 | `src/components/PopulerSerit.tsx` | "Şehrin popülerleri" — kesintisiz akan şerit |
+| `src/components/Sayfalama.tsx` | Sayfa gez/geri — `?sayfa=N`, 50'de bir |
 | `src/app/api/site-bilgisi` | Adresten ad/açıklama/logo çeker ("Bilgileri çek") |
 | `src/app/[sehir]/` | Şehir tahtası (81 il, `cities.ts` slug'ları) |
 | `src/app/ilan/[id]/` | İlan detayı + teklif yükseltme + rozet |
@@ -296,14 +297,21 @@ sonra deploy.
 restoran isimleri basar — canlıda çalıştırılıp çalıştırılmayacağı ürün kararı,
 kendiliğinden yapılmadı.
 
-## Anasayfa sırası (2026-08-22 kullanıcı kararı)
+## Anasayfa sırası (2026-08-22, son güncelleme: sayfalama)
 
 1. Giriş — **fiyat yok**. Eskiden "1 numarayı 450 ₺'ye al" diye bir sayaç
    vardı; kaldırıldı. Ziyaretçinin ilk gördüğü şey etiket fiyatı olunca tahta
    ürün rafına dönüyordu. Yerini tahtın **durumu** aldı (kimde, ne kadardır).
-2. **Popüler 3** — ilk üç büyük kart.
-3. **Canlı harita** — popüler 3'ün hemen altı. Toplanan para haritanın
-   köşesinde.
+2. **Canlı harita** — sayfanın EN ÜSTÜ (hero'nun hemen altı). Toplanan para
+   haritanın köşesinde. Önceden "popüler 3"ün altındaydı; kullanıcı kararıyla
+   en başa alındı — tahtanın durumu her şeyden önce görülsün diye.
+3. **"Türkiye Top"** — haritanın hemen altı, TEK bölüm (eskiden "popüler 3" +
+   ayrı "kalan liste" olarak haritanın iki yanına bölünmüştü, artık değil).
+   İlk 10 büyük kart (`BUYUK_SAYISI`, `Board.tsx`), sonrası küçük satır,
+   **50'de bir sayfa** (`SAYFA_BOYU`, `page.tsx`). Yanında canlı çekişme sabit
+   durur (`lg:sticky`).
+4. **Şehrin popülerleri** — akan şerit.
+5. Şehir Şampiyonları.
 
 ⚠️ **Ekran metninde "taht" kelimesi YOK** (2026-08-22 kullanıcı kararı):
 memleket.lol'ün dili, çalıntı duruyor ve biz işletme odaklıyız. Karşılığı
@@ -313,9 +321,24 @@ memleket.lol'ün dili, çalıntı duruyor ve biz işletme odaklıyız. Karşıl�
 "Türkiye tahtası" sorun değil. Yasak olan `taht` (koltuk). Kod içindeki
 `topSince`, `tahtSozu`, `tahtDegisimi` gibi **isimler bilerek değişmedi**:
 kullanıcı görmüyor, değiştirmek saf gürültü olurdu.
-4. **Şehrin popülerleri** — akan şerit.
-5. Kalan liste + canlı çekişme (liste boşsa akış tek başına tam genişlik).
-6. Şehir Şampiyonları.
+
+## Sayfalama (2026-08-22)
+
+`getBoard(citySlug?, take, skip)` — `skip` eklendi, `rank` ona göre kayıyor
+(2. sayfada ilk satır 51. olur, 1 değil). `getBoardToplam(citySlug?)` toplam
+ilan sayısını dönüyor, sayfa sayısını hesaplamak için.
+
+⚠️ **`Board`'daki büyük-kart/küçük-satır ayrımı SADECE sayfa GERÇEKTEN
+1'den başlıyorsa çalışır** (`rows[0]?.rank === 1`). 2. sayfada (rank 51-100)
+hiçbir satır büyük kart OLMAZ — aksi hâlde 51. sıradaki ilan görsel olarak
+"ilk 10"muş gibi yanlış bir üstünlük iddia ederdi. `ayracEtiketi` de yalnız
+tam 10 büyük kart dolduğunda görünür.
+
+`Sayfalama.tsx`: `?sayfa=N` query param, N=1 için parametre hiç yazılmıyor
+(anasayfa adresi `/`de sabit kalsın, paylaşılan link bozulmasın). Anasayfada
+kullanılıyor (`taban="/"`); şehir sayfası (`/[sehir]`) henüz sayfalanmıyor —
+bir ilin 50'den fazla ilanı olması pratikte uzak bir ihtimal, gerekirse aynı
+bileşen `taban="/{slug}"` ile oraya da eklenir.
 
 ⚠️ **Giriş fiyatı ekranlarda yazmıyor artık.** Ne kahramanda, ne şehir
 şampiyonları kutusunda ("Burası boş — sen tut"), ne harita etiketinde. Fiyat

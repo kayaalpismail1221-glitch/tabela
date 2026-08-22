@@ -61,15 +61,25 @@ function toRow(l: Kayit, rank: number): Row {
   }
 }
 
-/** Genel liste. Sehir tahtasi da ayni ekonominin suzulmus hali. */
-export async function getBoard(citySlug?: string, take = 50): Promise<Row[]> {
+/**
+ * Genel liste. Sehir tahtasi da ayni ekonominin suzulmus hali.
+ *
+ * @param skip Sayfalama icin — kacinci siradan baslanacak (0 = Turkiye 1.).
+ *             `rank` buna gore kayiyor: 2. sayfada (skip=50) ilk satir 51.
+ */
+export async function getBoard(
+  citySlug?: string,
+  take = 50,
+  skip = 0
+): Promise<Row[]> {
   const listings = await prisma.listing.findMany({
     where: citySlug ? { ...YAYINDA, city: citySlug } : YAYINDA,
     orderBy: SIRALAMA,
     take,
+    skip,
   })
 
-  const rows = listings.map((l, i) => toRow(l, i + 1))
+  const rows = listings.map((l, i) => toRow(l, skip + i + 1))
 
   // Sehir tahtasindaysak her ilanin genel sirasini da ekle ("Turkiye 14.")
   if (citySlug && rows.length) {
@@ -78,6 +88,11 @@ export async function getBoard(citySlug?: string, take = 50): Promise<Row[]> {
   }
 
   return rows
+}
+
+/** Bir sehrin (ya da tum Turkiye'nin) yayindaki ilan sayisi — sayfalama icin. */
+export async function getBoardToplam(citySlug?: string): Promise<number> {
+  return prisma.listing.count({ where: citySlug ? { ...YAYINDA, city: citySlug } : YAYINDA })
 }
 
 /** Verilen ilanlarin genel listedeki sirasi. */
