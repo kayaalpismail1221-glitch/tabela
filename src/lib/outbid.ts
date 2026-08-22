@@ -154,7 +154,7 @@ export function outbidMetni(p: {
 
   const baslik =
     sebep === 'TAHT'
-      ? 'Tahtı kaybettin.'
+      ? '1 numaralığı kaybettin.'
       : sebep === 'SEHIR'
         ? `${sehir}’in 1 numarası değişti.`
         : `${kaybeden.name} bir sıra geriledi.`
@@ -173,7 +173,7 @@ export function outbidMetni(p: {
   const bedel = `Yatırdığın <strong style="color:#f4f4f5;">${kacir(tl(kaybeden.currentBid))}</strong> duruyor — sadece <strong style="color:#ffb020;">${kacir(tl(fark))}</strong> fark ödersin.`
 
   const html = mailIskelet({
-    ustBaslik: sebep === 'TAHT' ? 'Türkiye tahtı' : sebep === 'SEHIR' ? sehir : 'Tabela',
+    ustBaslik: sebep === 'TAHT' ? 'Türkiye 1 numarası' : sebep === 'SEHIR' ? sehir : 'Tabela',
     baslik,
     govde: `<p style="margin:0 0 10px;">${olan}</p><p style="margin:0 0 10px;">${durum}</p><p style="margin:0;">${bedel}</p>`,
     dugmeMetni: `${dugme} — ${tl(fark)}`,

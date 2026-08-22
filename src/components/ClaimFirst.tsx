@@ -11,13 +11,16 @@ import { useRouter } from 'next/navigation'
  * gordugu sey etiket fiyati olunca tahta bir urun rafina donuyordu. Fiyat
  * artik ait oldugu yerde — ilan formunda.
  *
- * Yerini tahtin DURUMU aldi: bos mu, kimde, ne kadardir. Rakip gormek fiyat
- * gormekten daha iyi bir davet.
+ * Yerini 1 NUMARANIN DURUMU aldi: bos mu, kimde, ne kadardir. Rakip gormek
+ * fiyat gormekten daha iyi bir davet.
+ *
+ * Ekran metninde "taht" kelimesi kullanilmiyor (2026-08-22 kullanici karari) —
+ * memleket.lol'un dili, calinti duruyor. Bizim dilimiz isletme dili: "1 numara".
  */
 export function ClaimFirst({
   zirve,
 }: {
-  /** Tahti su an kim tutuyor. `soz` sunucuda hesaplandi (hidrasyon icin). */
+  /** 1 numarayi su an kim tutuyor. `soz` sunucuda hesaplandi (hidrasyon icin). */
   zirve?: { id: string; name: string; soz: string } | null
 }) {
   const router = useRouter()
@@ -32,7 +35,7 @@ export function ClaimFirst({
 
       {zirve ? (
         <p className="mt-5 text-base text-muted sm:text-lg">
-          Türkiye tahtı şu an{' '}
+          Türkiye’nin 1 numarası şu an{' '}
           <Link href={`/ilan/${zirve.id}`} className="font-bold text-text hover:text-neon">
             {zirve.name}
           </Link>
@@ -40,7 +43,7 @@ export function ClaimFirst({
         </p>
       ) : (
         <p className="mt-5 text-base text-muted sm:text-lg">
-          Taht boş. İlk ilanı veren 1 numara olur.
+          Henüz 1 numara yok. İlk ilanı veren alır.
         </p>
       )}
 

@@ -251,10 +251,14 @@ kendiliğinden yapılmadı.
 3. **Canlı harita** — popüler 3'ün hemen altı. Toplanan para haritanın
    köşesinde.
 
-⚠️ **"Taht kuruldu" yazmıyoruz** (2026-08-22 kullanıcı kararı): memleket.lol'ün
-cümlesi, çalıntı duruyor ve biz işletme odaklıyız. Sayaç dili **"10 il dolu,
-71 il boş"**. `tahta` (liste) kendi metaforumuz, kalıyor; `taht` (1 numara
-koltuğu) ekran metninde kullanılmıyor.
+⚠️ **Ekran metninde "taht" kelimesi YOK** (2026-08-22 kullanıcı kararı):
+memleket.lol'ün dili, çalıntı duruyor ve biz işletme odaklıyız. Karşılığı
+**"1 numara"**. Sayaç dili **"10 il dolu, 71 il boş"**.
+
+`tahta` (liste) kendi metaforumuz, ilk günden beri var, kalıyor — "tahtaya çık",
+"Türkiye tahtası" sorun değil. Yasak olan `taht` (koltuk). Kod içindeki
+`topSince`, `tahtSozu`, `tahtDegisimi` gibi **isimler bilerek değişmedi**:
+kullanıcı görmüyor, değiştirmek saf gürültü olurdu.
 4. **Şehrin popülerleri** — akan şerit.
 5. Kalan liste + canlı çekişme (liste boşsa akış tek başına tam genişlik).
 6. Şehir Şampiyonları.
