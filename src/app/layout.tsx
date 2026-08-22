@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     locale: 'tr_TR',
     type: 'website',
   },
-  twitter: { card: 'summary', title: BASLIK, description: ACIKLAMA },
+  twitter: { card: 'summary_large_image', title: BASLIK, description: ACIKLAMA },
 }
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
