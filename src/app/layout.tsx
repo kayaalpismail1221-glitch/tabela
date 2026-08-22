@@ -11,7 +11,7 @@ const inter = Inter({
   subsets: ['latin', 'latin-ext'], // latin-ext olmadan ş ğ ı ü ö ç bozulur
 })
 
-const BASLIK = 'Tabela — Türkiye’nin en iddialı işletmeleri'
+const BASLIK = 'Tabela — İddian varsa yerin üstte'
 const ACIKLAMA =
   'İddian varsa yerin üstte. İşletmeler teklif verir, sıralama teklife göre değişir. Şehrinin en popüleri ol.'
 
