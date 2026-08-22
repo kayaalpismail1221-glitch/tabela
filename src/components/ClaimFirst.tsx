@@ -48,8 +48,8 @@ export function ClaimFirst({
       )}
 
       <p className="mx-auto mt-3 max-w-lg text-balance text-sm text-muted">
-        Hem Türkiye&apos;nin hem şehrinin tahtasında birden görünürsün. Türkiye&apos;de 40. olmak
-        akılda kalmaz; şehrinin 1 numarası olmak akılda kalır.
+        Hem Türkiye&apos;nin hem şehrinin tahtasında birden görünürsün. Küçük şehirde 1 numara
+        olmak, büyük şehirde 40. olmaktan iyidir.
       </p>
 
       <button
