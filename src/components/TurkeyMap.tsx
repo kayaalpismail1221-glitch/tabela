@@ -60,7 +60,7 @@ export function TurkeyMap({
             cokuyordu. Kosede, olcusunde. */}
         <div className="text-right">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-neon/40 bg-neon/10 px-3 py-1 text-sm font-black tabular-nums text-neon">
-            <span aria-hidden>👑</span> Toplam {tl(hacim)}
+            Hacim {tl(hacim)}
           </span>
           <p className="mt-1 text-xs text-muted">
             {dolu > 0 ? (
