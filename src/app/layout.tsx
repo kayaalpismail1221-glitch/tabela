@@ -13,7 +13,7 @@ const inter = Inter({
 
 const BASLIK = 'Tabela — Türkiye’nin en iddialı işletmeleri'
 const ACIKLAMA =
-  'İyi olan değil, iddialı olan üstte. İşletmeler teklif verir, sıralama teklife göre değişir. Şehrinde 1 numara ol.'
+  'İddian varsa yerin üstte. İşletmeler teklif verir, sıralama teklife göre değişir. Şehrinin en popüleri ol.'
 
 export const metadata: Metadata = {
   // Dongunun son adimi paylasmak; paylasilan baglanti kart olarak aciliyor.

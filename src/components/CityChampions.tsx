@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import type { Champion } from '@/lib/board'
 import { tl } from '@/lib/format'
-import { TABAN_TEKLIF } from '@/lib/rules'
 import { Avatar } from './Avatar'
 
 /**
@@ -57,9 +56,7 @@ export function CityChampions({ champions }: { champions: Champion[] }) {
             ) : (
               <div className="mt-2.5">
                 <div className="text-sm font-bold text-muted group-hover:text-text">Boş</div>
-                <div className="text-xs text-muted/80">
-                  {tl(TABAN_TEKLIF)} ile buranın 1 numarası ol
-                </div>
+                <div className="text-xs text-muted/80">Burası boş — sen tut</div>
               </div>
             )}
           </Link>

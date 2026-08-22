@@ -167,7 +167,7 @@ export async function GET(req: Request, ctx: RouteContext<'/rozet/[id]'>) {
             TABELA
           </div>
           <div style={{ display: 'flex', fontSize: 34, color: '#8e8e99' }}>
-            İyi olan değil, iddialı olan üstte.
+            İddian varsa yerin üstte.
           </div>
         </div>
       </div>

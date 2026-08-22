@@ -8,11 +8,10 @@ import { prisma } from './prisma'
  * ziyaretci, toplam kac para toplandi. Gerisi bilerek gosterilmiyor —
  * kalabalik bir sayac panosu hicbir seyi anlatmiyor.
  *
- * Para ve ziyaretci veriden turetiliyor; tek sabit LANSMAN.
+ * Not: "tahta ne zaman acildi" sayaci 2026-08-22'de kaldirildi. Sayfanin
+ * dibindeki dev "0 ₺ topladi — 28 saat once acildi" bloguyla birlikte gitti;
+ * toplam para artik haritanin kosesinde duruyor.
  */
-
-/** Tahtanin acildigi an. */
-export const LANSMAN = new Date('2026-08-21T12:00:00+03:00')
 
 /** Bu sure icinde gorulen ziyaretci "su an burada" sayiliyor. */
 const AKTIF_PENCERE_DK = 5
@@ -26,10 +25,6 @@ export type Rakamlar = {
   hacim: number
   /** Tahtin kac kez el degistirdigi — 1 numaraya oturan teklif sayisi */
   tahtDegisimi: number
-  /** Lansmandan bu yana gecen saat */
-  saat: number
-  /** Lansmandan bu yana gecen gun */
-  gun: number
 }
 
 export async function getRakamlar(): Promise<Rakamlar> {
@@ -43,15 +38,11 @@ export async function getRakamlar(): Promise<Rakamlar> {
     prisma.bid.count({ where: { status: 'PAID', rankAfter: 1 } }),
   ])
 
-  const gecen = Date.now() - LANSMAN.getTime()
-
   return {
     aktif,
     ziyaretci,
     hacim: toplam._sum.paid ?? 0,
     tahtDegisimi,
-    saat: Math.max(0, Math.floor(gecen / 3_600_000)),
-    gun: Math.max(0, Math.floor(gecen / 86_400_000)),
   }
 }
 
@@ -78,11 +69,4 @@ export async function ziyaretKaydet(ip: string, ua: string, gorunur = true): Pro
   }
 
   return getRakamlar()
-}
-
-/** "44 saattir" / "6 gündür" — 48 saati gecince gune donuyor. */
-export function yasSozu(r: Pick<Rakamlar, 'saat' | 'gun'>): string {
-  if (r.saat < 1) return 'yeni açıldı'
-  if (r.saat < 48) return `${r.saat} saat önce`
-  return `${r.gun} gün önce`
 }

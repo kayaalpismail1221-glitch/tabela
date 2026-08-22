@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { cityBySlug } from '@/lib/cities'
 import { parseLink } from '@/lib/links'
 import { placeBid } from '@/lib/bids'
-import { siteLogosu } from '@/lib/logo'
+import { siteLogosu, logoAdresinden } from '@/lib/logo'
 import { TABAN_TEKLIF } from '@/lib/rules'
 
 export const dynamic = 'force-dynamic'
@@ -19,7 +19,24 @@ type Body = {
   ownerName?: string
   ownerEmail?: string
   ownerPhone?: string
+  imageUrl?: string | null // formdaki "Bilgileri cek" adiminda cekilmis amblem (data URI)
+  logoUrl?: string | null // kullanicinin elle verdigi logo adresi
   amount?: number // kurus
+}
+
+/**
+ * Istemciden gelen amblem data URI'si. Rastgele bir dizeyi veritabanina
+ * yazmiyoruz: yalnizca bilinen gorsel turleri ve makul boy.
+ *
+ * SVG bilerek DISARIDA: SVG bir belge formati, script tasiyabiliyor ve
+ * amblem hicbir yerde bunu gerektirmiyor.
+ */
+const AMBLEM_TURU = /^data:image\/(webp|png|jpeg|jpg|gif|x-icon|vnd\.microsoft\.icon);base64,[A-Za-z0-9+/=]+$/
+const AMBLEM_EN_BUYUK = 80_000
+
+function gecerliAmblem(v: unknown): string | null {
+  if (typeof v !== 'string' || v.length > AMBLEM_EN_BUYUK) return null
+  return AMBLEM_TURU.test(v) ? v : null
 }
 
 export async function POST(req: Request) {
@@ -68,10 +85,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Teklif taban tutarın altında.' }, { status: 400 })
   }
 
-  // Site logosunu biz cekiyoruz — kullaniciya gorsel yukletmiyoruz.
-  // Instagram'in herkese acik profil fotografi yok, o ilanlar harf amblemiyle
-  // kaliyor. Basarisiz olursa ilan yine olusur.
-  const imageUrl = link.kind === 'WEB' ? await siteLogosu(link.url) : null
+  // Amblem sirasi: kullanicinin ELLE verdigi adres > formda cekilmis amblem >
+  // sitenin kendi logosu. Hicbiri tutmazsa ilan yine olusur, harf amblemiyle
+  // kalir (Instagram ilanlarinin cogu boyle).
+  //
+  // Elle verilen adres de indirilip data URI'ye ceviriliyor: uzak adresi
+  // saklarsak karsi taraf hotlink engellediginde tahtadaki amblem kirilir.
+  const eldekiAmblem = gecerliAmblem(body.imageUrl)
+  const eldekiAdres = (body.logoUrl ?? '').trim()
+
+  const imageUrl =
+    (eldekiAdres ? await logoAdresinden(eldekiAdres) : null) ??
+    eldekiAmblem ??
+    (link.kind === 'WEB' ? await siteLogosu(link.url) : null)
 
   const alanlar = {
     name,

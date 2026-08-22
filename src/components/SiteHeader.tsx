@@ -12,7 +12,7 @@ export function SiteHeader() {
         </Link>
 
         <p className="ml-auto hidden text-sm text-muted md:block">
-          İyi olan değil, <span className="text-text">iddialı</span> olan üstte.
+          <span className="text-text">İddian</span> varsa yerin üstte.
         </p>
 
         <Link

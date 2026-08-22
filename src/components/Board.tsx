@@ -133,18 +133,26 @@ function Ayrac({ etiket }: { etiket: string }) {
   )
 }
 
+/**
+ * `kesit` anasayfa icin: harita "populer 3"un hemen altinda duracak, bu yuzden
+ * tahta ikiye bolunebiliyor. Sehir sayfasi tek parca kullaniyor.
+ */
 export function Board({
   rows,
   showCity = true,
   bosMesaj = 'İlk ilanı veren 1 numara olur.',
   ayracEtiketi = 'İlk 3',
+  kesit = 'hepsi',
 }: {
   rows: Row[]
   showCity?: boolean
   bosMesaj?: string
   ayracEtiketi?: string
+  kesit?: 'hepsi' | 'ust' | 'alt'
 }) {
   if (!rows.length) {
+    // Bos tahtanin daveti bir kez gorunsun; alt kesit sessiz kalir.
+    if (kesit === 'alt') return null
     return (
       <div className="rounded-2xl border border-dashed border-line p-10 text-center">
         <p className="text-lg font-bold">Burası henüz boş.</p>
@@ -162,18 +170,22 @@ export function Board({
   const ilkUc = rows.slice(0, 3)
   const gerisi = rows.slice(3)
 
+  if (kesit === 'alt' && !gerisi.length) return null
+
   return (
     <div>
-      <div className="space-y-3">
-        {ilkUc.map((r) => (
-          <TopCard key={r.id} row={r} showCity={showCity} />
-        ))}
-      </div>
+      {kesit !== 'alt' && (
+        <div className="space-y-3">
+          {ilkUc.map((r) => (
+            <TopCard key={r.id} row={r} showCity={showCity} />
+          ))}
+        </div>
+      )}
 
       {/* Ayrac ilk uc DOLDUGUNDA anlamli; iki ilanlik tahtada gurultu olur */}
-      {ilkUc.length === 3 && <Ayrac etiket={ayracEtiketi} />}
+      {kesit !== 'ust' && ilkUc.length === 3 && <Ayrac etiket={ayracEtiketi} />}
 
-      {gerisi.length > 0 && (
+      {kesit !== 'ust' && gerisi.length > 0 && (
         <div className="overflow-hidden rounded-2xl border border-line bg-surface/40">
           {gerisi.map((r) => (
             <BoardRow key={r.id} row={r} showCity={showCity} />

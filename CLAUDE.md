@@ -4,9 +4,12 @@ Türkiye'nin restoran tahtası. Restoranlar Instagram hesaplarıyla ilan verir,
 **sıra teklife göre** belirlenir. outbid.lol mekaniği, Türkiye'ye ve gastronomiye
 uyarlanmış hâli.
 
-> **İyi olan değil, iddialı olan üstte.** — Marka mesajı bu, ve aynı zamanda
-> hukuki kalkan. Bunu "en iyi restoranlar" diye konumlandırmak hem yalan olur
-> hem Reklam Kurulu problemi yaratır.
+> **İddian varsa yerin üstte.** — Marka mesajı bu, ve aynı zamanda hukuki
+> kalkan. Bunu "en iyi restoranlar" diye konumlandırmak hem yalan olur hem
+> Reklam Kurulu problemi yaratır. Cümle 2026-08-22'de "İyi olan değil, iddialı
+> olan üstte"den daha sıcak bir hâle çevrildi; **koruduğu şey aynı**: sıralama
+> iddiaya göre, kaliteye göre değil. Değiştirecek olan bunu bozmasın.
+> Üç yerde geçiyor: `SiteHeader`, `layout.tsx` metadata, `rozet/[id]`.
 
 ## Alan adı
 
@@ -42,7 +45,9 @@ tek şey bu ucuz zafer.
 
 | Yol | İçerik |
 |---|---|
-| `src/app/page.tsx` | Genel tahta + canlı çekişme + Şehir Şampiyonları |
+| `src/app/page.tsx` | Genel tahta + harita + şerit + canlı çekişme + Şehir Şampiyonları |
+| `src/components/PopulerSerit.tsx` | "Şehrin popülerleri" — kesintisiz akan şerit |
+| `src/app/api/site-bilgisi` | Adresten ad/açıklama/logo çeker ("Bilgileri çek") |
 | `src/app/[sehir]/` | Şehir tahtası (81 il, `cities.ts` slug'ları) |
 | `src/app/ilan/[id]/` | İlan detayı + teklif yükseltme + rozet |
 | `src/app/ilan-ver/` | İlan formu |
@@ -236,6 +241,55 @@ sonra deploy.
 ⚠️ Canlı veritabanında şema var ama **0 ilan**. `npm run db:seed` uydurma
 restoran isimleri basar — canlıda çalıştırılıp çalıştırılmayacağı ürün kararı,
 kendiliğinden yapılmadı.
+
+## Anasayfa sırası (2026-08-22 kullanıcı kararı)
+
+1. Giriş — **fiyat yok**. Eskiden "1 numarayı 450 ₺'ye al" diye bir sayaç
+   vardı; kaldırıldı. Ziyaretçinin ilk gördüğü şey etiket fiyatı olunca tahta
+   ürün rafına dönüyordu. Yerini tahtın **durumu** aldı (kimde, ne kadardır).
+2. **Popüler 3** — ilk üç büyük kart.
+3. **Canlı harita** — popüler 3'ün hemen altı. Toplanan para haritanın
+   köşesinde.
+4. **Şehrin popülerleri** — akan şerit.
+5. Kalan liste + canlı çekişme (liste boşsa akış tek başına tam genişlik).
+6. Şehir Şampiyonları.
+
+⚠️ **Giriş fiyatı ekranlarda yazmıyor artık.** Ne kahramanda, ne şehir
+şampiyonları kutusunda ("Burası boş — sen tut"), ne harita etiketinde. Fiyat
+yalnızca ilan formunda — ait olduğu yer orası. Geri koyacak olan bunun bir
+tercih olduğunu bilsin.
+
+Sayfanın dibindeki dev "0 ₺ topladı — 28 saat önce açıldı" bloğu (`TotalRaised`)
+**silindi**: boş tahtada dev bir 0 yazmak tahtanın bütün iddiasını çökertiyordu.
+Toplam artık haritanın köşesinde, ölçüsünde. `stats.ts`'teki `LANSMAN`/`yasSozu`
+o blokla birlikte gitti.
+
+## Şehrin popülerleri (akan şerit)
+
+Şehir Şampiyonları ızgarasından farkı **hareket**: duran liste "burası dolu"
+der, akan şerit "burası çalışıyor" der. Saf CSS — şerit iki kez basılıp yarısı
+kadar kaydırılıyor, baş ve son dikişsiz kapanıyor. Az şampiyon varsa liste
+tekrarlanarak 12 öğeye tamamlanıyor, yoksa şerit ekranı doldurmuyor.
+`prefers-reduced-motion` açıksa animasyon durur, şerit elle kaydırılır.
+
+## İlan formu — "Bilgileri çek"
+
+Kurucu fikir: **formu kullanıcı doldurmasın.** Adres yapıştırılınca
+`/api/site-bilgisi` ad, açıklama ve logoyu çekiyor; kullanıcıya düzeltmek
+kalıyor. Sürtünme, tahtayı boş bırakan tek şey.
+
+- Çekilen değerler kullanıcının yazdığını **ezmez**, yalnızca boş alanı doldurur.
+- Amblem sırası: elle verilen **logo adresi** > formda çekilmiş amblem >
+  sitenin kendi logosu. Elle verilen adres de indirilip data URI'ye çevrilir —
+  uzak adres saklanırsa karşı taraf hotlink engellediğinde amblem kırılır.
+- İstemciden gelen data URI doğrulanır (bilinen görsel türleri, ≤80 KB).
+  **SVG bilerek dışarıda**: belge formatı, script taşıyabiliyor.
+- ⚠️ **SSRF freni** `src/lib/logo.ts`'te (`guvenliHost`): kullanıcının verdiği
+  adrese sunucudan istek atıyoruz, `localhost` ve özel IP aralıkları reddedilir.
+  DNS çözümlemesi yapılmıyor — kazayla iç ağa çıkmayı keser, kararlı saldırganı
+  değil.
+- Buton: **"Şehrinin en popüleri ol · {tutar}"**. Altında "Tek seferlik ödeme,
+  abonelik değil" — sistem tekil, abonelik yok ve öyle kalacak.
 
 ## Canlı harita
 

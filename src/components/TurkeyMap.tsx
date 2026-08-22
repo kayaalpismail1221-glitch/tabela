@@ -1,7 +1,6 @@
 import type { Champion } from '@/lib/board'
 import { HARITA_VIEWBOX, IL_YOLLARI, IL_MERKEZLERI } from '@/lib/turkeyMap'
 import { tl } from '@/lib/format'
-import { TABAN_TEKLIF } from '@/lib/rules'
 
 /**
  * CANLI HARITA — sehir secmenin gorsel yolu.
@@ -31,7 +30,16 @@ const SAG_KENAR = 1043
 /** Kenara bu kadar yaklasan ilin adi ortalanmaz, ile yapisik yazilir. */
 const KENAR_PAYI = 110
 
-export function TurkeyMap({ champions }: { champions: Champion[] }) {
+export function TurkeyMap({
+  champions,
+  hacim,
+  tahtDegisimi,
+}: {
+  champions: Champion[]
+  hacim: number
+  /** Tahtin kac kez el degistirdigi — paranin yaninda duran tek drama rakami. */
+  tahtDegisimi: number
+}) {
   const enYuksek = champions.reduce((m, c) => Math.max(m, c.listing?.currentBid ?? 0), 0)
   const dolu = champions.filter((c) => c.listing).length
 
@@ -44,18 +52,27 @@ export function TurkeyMap({ champions }: { champions: Champion[] }) {
 
   return (
     <section>
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-2xl font-black">Canlı harita</h2>
-        <p className="text-sm text-muted">
-          {dolu > 0 ? (
-            <>
-              <span className="text-neon">{dolu}</span> il tutuldu,{' '}
-              <span className="text-text">{81 - dolu}</span> il boş.
-            </>
-          ) : (
-            <>81 il de boş. Haritadan seç, ilk sen tut.</>
-          )}
-        </p>
+
+        {/* Toplanan para haritanin kosesinde. Sayfanin dibinde dev bir rakam
+            olarak duruyordu; orada 0 ₺ yazdiginda tahtanin butun iddiasi
+            cokuyordu. Kosede, olcusunde. */}
+        <div className="text-right">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-neon/40 bg-neon/10 px-3 py-1 text-sm font-black tabular-nums text-neon">
+            <span aria-hidden>👑</span> Toplam {tl(hacim)}
+          </span>
+          <p className="mt-1 text-xs text-muted">
+            {dolu > 0 ? (
+              <>
+                <span className="text-neon">{dolu}</span> şehirde taht kuruldu,{' '}
+                <span className="text-text">{81 - dolu}</span> il boş
+              </>
+            ) : (
+              <>81 il de boş. Haritadan seç, ilk sen tut.</>
+            )}
+          </p>
+        </div>
       </div>
 
       <div className="harita mt-4 rounded-2xl border border-line bg-surface/40 p-3 sm:p-5">
@@ -125,6 +142,14 @@ export function TurkeyMap({ champions }: { champions: Champion[] }) {
 
       <p className="mt-2 text-xs text-muted">
         İl ne kadar parlaksa oradaki 1 numaranın teklifi o kadar yüksek. Karanlık iller boş.
+        {tahtDegisimi > 0 && (
+          <>
+            {' '}
+            Taht bugüne kadar{' '}
+            <span className="text-text">{tahtDegisimi.toLocaleString('tr-TR')}</span> kez el
+            değiştirdi.
+          </>
+        )}
       </p>
     </section>
   )
@@ -132,9 +157,7 @@ export function TurkeyMap({ champions }: { champions: Champion[] }) {
 
 /** Uzerine gelince cikan tek satir. Bos ilde davet, dolu ilde rakam. */
 function etiket(c: Champion): string {
-  return c.listing
-    ? `${c.cityName} · ${tl(c.listing.currentBid)}`
-    : `${c.cityName} · boş, ${tl(TABAN_TEKLIF)}`
+  return c.listing ? `${c.cityName} · ${tl(c.listing.currentBid)}` : `${c.cityName} · boş`
 }
 
 /**

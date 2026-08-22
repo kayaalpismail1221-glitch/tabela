@@ -1,15 +1,14 @@
 import Link from 'next/link'
-import { getBoard, getCityChampions, getActivity, getTopBid, getZirve } from '@/lib/board'
+import { getBoard, getCityChampions, getActivity, getZirve } from '@/lib/board'
 import { Board } from '@/components/Board'
 import { CityChampions } from '@/components/CityChampions'
 import { TurkeyMap } from '@/components/TurkeyMap'
+import { PopulerSerit } from '@/components/PopulerSerit'
 import { ActivityFeed } from '@/components/ActivityFeed'
 import { LivePill } from '@/components/LivePill'
 import { ClaimFirst } from '@/components/ClaimFirst'
-import { TotalRaised } from '@/components/TotalRaised'
 import { ziyaretKaydet } from '@/lib/stats'
 import { headers } from 'next/headers'
-import { priceOfFirstPlace } from '@/lib/rules'
 import { tahtSozu } from '@/lib/format'
 
 export const dynamic = 'force-dynamic'
@@ -26,14 +25,17 @@ async function ziyaretiKaydet() {
 }
 
 export default async function HomePage() {
-  const [rows, champions, activity, rakamlar, topBid, zirve] = await Promise.all([
+  const [rows, champions, activity, rakamlar, zirve] = await Promise.all([
     getBoard(undefined, 50),
     getCityChampions(),
     getActivity(20),
     ziyaretiKaydet(),
-    getTopBid(),
     getZirve(),
   ])
+
+  // Populer 3'ten sonrasi varsa alt tahta canli akisin yanina giriyor;
+  // yoksa akis tek basina tam genislik alir (bos sutun birakmiyoruz).
+  const kalanVar = rows.length > 3
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
@@ -42,7 +44,6 @@ export default async function HomePage() {
 
         <div className="mt-6">
           <ClaimFirst
-            zirveFiyati={priceOfFirstPlace(topBid)}
             zirve={
               zirve && zirve.topSince
                 ? { id: zirve.id, name: zirve.name, soz: tahtSozu(zirve.topSince) }
@@ -58,10 +59,36 @@ export default async function HomePage() {
         </p>
       </section>
 
-      <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div>
-          <Board rows={rows} ayracEtiketi="Türkiye ilk 3" />
-        </div>
+      {/* Populer 3 */}
+      <div className="mt-12">
+        <Board rows={rows} kesit="ust" />
+      </div>
+
+      {/* Harita — populer 3'un hemen alti */}
+      <div className="mt-10">
+        <TurkeyMap
+          champions={champions}
+          hacim={rakamlar.hacim}
+          tahtDegisimi={rakamlar.tahtDegisimi}
+        />
+      </div>
+
+      <div className="mt-10">
+        <PopulerSerit champions={champions} />
+      </div>
+
+      <div
+        className={
+          kalanVar
+            ? 'mt-12 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]'
+            : 'mt-12 grid grid-cols-1 gap-6'
+        }
+      >
+        {kalanVar && (
+          <div>
+            <Board rows={rows} kesit="alt" ayracEtiketi="Türkiye ilk 3" />
+          </div>
+        )}
 
         <div className="lg:sticky lg:top-20 lg:self-start">
           <ActivityFeed
@@ -71,15 +98,8 @@ export default async function HomePage() {
       </div>
 
       <div className="mt-16">
-        <TurkeyMap champions={champions} />
-      </div>
-
-      <div className="mt-16">
         <CityChampions champions={champions} />
       </div>
-
-      {/* Rakami saklamak yerine one koymak — 0 TL yaziyorsa 0 TL yazar */}
-      <TotalRaised r={rakamlar} />
     </div>
   )
 }

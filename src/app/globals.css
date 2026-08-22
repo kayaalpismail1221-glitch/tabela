@@ -121,3 +121,38 @@ input[type='number']::-webkit-inner-spin-button {
   fill: var(--color-neon);
   font-weight: 900;
 }
+
+/* Sehrin populerleri seridi. Serit iki kez basilir, yarisi kadar kaydirilir:
+   bas ile son dikissiz kapanir. Kenarlarda maske, hover'da durur. */
+.serit-kutu {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+.serit {
+  display: flex;
+  width: max-content;
+  animation-name: serit-kaydir;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes serit-kaydir {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.serit-kutu:hover .serit {
+  animation-play-state: paused;
+}
+
+/* Hareket istemeyen kullanici seridi kendisi kaydirsin. */
+@media (prefers-reduced-motion: reduce) {
+  .serit {
+    animation: none;
+  }
+  .serit-kutu {
+    overflow-x: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
