@@ -250,6 +250,11 @@ kendiliğinden yapılmadı.
 2. **Popüler 3** — ilk üç büyük kart.
 3. **Canlı harita** — popüler 3'ün hemen altı. Toplanan para haritanın
    köşesinde.
+
+⚠️ **"Taht kuruldu" yazmıyoruz** (2026-08-22 kullanıcı kararı): memleket.lol'ün
+cümlesi, çalıntı duruyor ve biz işletme odaklıyız. Sayaç dili **"10 il dolu,
+71 il boş"**. `tahta` (liste) kendi metaforumuz, kalıyor; `taht` (1 numara
+koltuğu) ekran metninde kullanılmıyor.
 4. **Şehrin popülerleri** — akan şerit.
 5. Kalan liste + canlı çekişme (liste boşsa akış tek başına tam genişlik).
 6. Şehir Şampiyonları.

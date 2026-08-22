@@ -35,7 +35,7 @@ export function PopulerSerit({ champions }: { champions: Champion[] }) {
           <span aria-hidden>👑</span> Şehrin popülerleri
         </h2>
         <p className="text-xs text-muted">
-          <span className="font-bold text-neon">{dolular.length}</span> şehirde taht kuruldu
+          <span className="font-bold text-neon">{dolular.length}</span> il dolu
         </p>
       </div>
 

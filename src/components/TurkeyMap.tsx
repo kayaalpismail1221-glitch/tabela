@@ -65,7 +65,7 @@ export function TurkeyMap({
           <p className="mt-1 text-xs text-muted">
             {dolu > 0 ? (
               <>
-                <span className="text-neon">{dolu}</span> şehirde taht kuruldu,{' '}
+                <span className="text-neon">{dolu}</span> il dolu,{' '}
                 <span className="text-text">{81 - dolu}</span> il boş
               </>
             ) : (
@@ -145,9 +145,8 @@ export function TurkeyMap({
         {tahtDegisimi > 0 && (
           <>
             {' '}
-            Taht bugüne kadar{' '}
-            <span className="text-text">{tahtDegisimi.toLocaleString('tr-TR')}</span> kez el
-            değiştirdi.
+            1 numara bugüne kadar{' '}
+            <span className="text-text">{tahtDegisimi.toLocaleString('tr-TR')}</span> kez değişti.
           </>
         )}
       </p>
