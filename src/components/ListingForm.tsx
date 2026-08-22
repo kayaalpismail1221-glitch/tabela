@@ -179,34 +179,26 @@ export function ListingForm({
         </div>
       </div>
 
-      <Field label="Logo" hint="Galeriden yükle veya adres yapıştır.">
-        <div className="flex gap-2">
+      <Field label="Logo (İsteğe bağlı)" hint="Bilgileri Çek demediysen galeriden seçebilirsin.">
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-line bg-ink px-4 py-3 text-sm font-medium text-text transition hover:border-neon">
+          📷 Galeriden fotoğraf seç
           <input
-            value={logoUrl}
-            onChange={(e) => setLogoUrl(e.target.value)}
-            placeholder="https://siten.com/logo.png"
-            className="w-full rounded-xl border border-line bg-ink px-3 py-3 outline-none focus:border-neon"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              const reader = new FileReader()
+              reader.onload = () => {
+                const result = reader.result as string
+                setLogo(result)
+                setLogoUrl('')
+              }
+              reader.readAsDataURL(file)
+            }}
           />
-          <label className="flex shrink-0 cursor-pointer items-center gap-1 rounded-xl border border-line bg-ink px-3 py-3 text-sm text-muted hover:border-neon hover:text-text">
-            📷
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (!file) return
-                const reader = new FileReader()
-                reader.onload = () => {
-                  const result = reader.result as string
-                  setLogo(result)
-                  setLogoUrl('')
-                }
-                reader.readAsDataURL(file)
-              }}
-            />
-          </label>
-        </div>
+        </label>
       </Field>
 
       <div className="grid gap-5 sm:grid-cols-2">
