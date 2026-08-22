@@ -35,11 +35,11 @@ export function ClaimFirst({
 
       {zirve ? (
         <p className="mt-5 text-base text-muted sm:text-lg">
-          Türkiye’nin 1 numarası şu an{' '}
+          Şu an Türkiye’nin 1 numarası:{' '}
           <Link href={`/ilan/${zirve.id}`} className="font-bold text-text hover:text-neon">
             {zirve.name}
           </Link>
-          ’de — {zirve.soz}.
+          {' '}— {zirve.soz}.
         </p>
       ) : (
         <p className="mt-5 text-base text-muted sm:text-lg">
