@@ -51,8 +51,6 @@ export function ListingForm({
     name.trim().length >= 2 &&
     city !== '' &&
     description.trim().length >= 5 &&
-    ownerName.trim().length >= 2 &&
-    EPOSTA.test(ownerEmail.trim()) &&
     amount >= TABAN_TEKLIF
 
   /** Adresten ad/aciklama/logo cek. Bulunamayan alan kullanicinin yazdigi gibi kalir. */
@@ -226,42 +224,7 @@ export function ListingForm({
         />
       </Field>
 
-      <div className="rounded-2xl border border-line bg-surface/40 p-4">
-        <div className="text-sm font-bold">Seni nasıl bulalım?</div>
-        <p className="mt-1 text-xs text-muted">
-          Tahtada <strong className="text-text">görünmez</strong>. Üste çıkıldığında haber vermek ve
-          ödeme makbuzunu göndermek için gerekiyor.
-        </p>
 
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <input
-            value={ownerName}
-            onChange={(e) => setOwnerName(e.target.value)}
-            placeholder="Ad soyad"
-            autoComplete="name"
-            className="w-full rounded-xl border border-line bg-ink px-3 py-3 outline-none focus:border-neon"
-          />
-          <input
-            value={ownerEmail}
-            onChange={(e) => setOwnerEmail(e.target.value)}
-            placeholder="E-posta"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            className="w-full rounded-xl border border-line bg-ink px-3 py-3 outline-none focus:border-neon"
-          />
-        </div>
-
-        <input
-          value={ownerPhone}
-          onChange={(e) => setOwnerPhone(e.target.value)}
-          placeholder="Telefon (isteğe bağlı)"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          className="mt-3 w-full rounded-xl border border-line bg-ink px-3 py-3 outline-none focus:border-neon"
-        />
-      </div>
 
       <div>
         <span className="text-sm font-bold">Teklifin</span>
