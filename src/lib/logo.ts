@@ -25,7 +25,7 @@ const AMBLEM_PX = 96
 /** Tarayici gibi davran; bazi sunucular User-Agent'siz istegi reddediyor. */
 const BASLIKLAR = {
   'User-Agent':
-    'Mozilla/5.0 (compatible; TabelaBot/1.0; +https://tabela-ochre.vercel.app)',
+    'Mozilla/5.0 (compatible; TabelaBot/1.0; +https://tabela.lol)',
   Accept: 'text/html,application/xhtml+xml,image/*;q=0.8,*/*;q=0.5',
 }
 

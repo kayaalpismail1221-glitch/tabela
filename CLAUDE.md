@@ -136,9 +136,20 @@ hukuken eksiktir ve sayfa bunu kırmızı bir Taslak uyarısıyla söylüyor.
 
 Metinler hukuk danışmanı görmedi — başvuru öncesi mali müşavir/avukat okumalı.
 
-### 3. İyzico yazıldı ama HİÇ ÇALIŞTIRILMADI
-`src/lib/iyzico.ts` + `api/iyzico/callback` duruyor. **Canlı anahtarla tek bir
-kez bile denenmedi** — üye işyeri hesabı yok.
+### 3. İyzico: anahtarlar bağlandı, akış hâlâ denenmedi
+**Üye işyeri Culinora'nınki** (2026-08-22 kullanıcı kararı — o da şahıs
+şirketiydi). Anahtarlar `gastrofolly/.env.local`'den alındı ve **prod Iyzico'ya
+karşı doğrulandı** (`apiTest` → `status: success`, tahsilat yapılmadan).
+Lokal `.env` dolu; **Vercel'e girilmedi**.
+
+⚠️ **İki ürün tek üye işyeri.** Iyzico üye işyeri sözleşmesi beyan edilen alan
+adına bağlıdır; `tabela.lol` panelde tanımlı değilse oradan gelen işlem hesabı
+dondurabilir — ve o hesap dondurulursa **Culinora'nın tahsilatı da durur**.
+Vercel'e anahtar girmeden önce Iyzico panelinden alan adını ekle.
+
+Akışın kendisi (`odemeBaslat` → Checkout Form → callback → `applyPaidBid`)
+**hâlâ tek bir kez bile çalıştırılmadı**. `PAYMENT_MODE="live"` yapılıp küçük
+tutarlı gerçek bir ödemeyle doğrulanması şart.
 
 Akış: `placeBid` → Bid PENDING → Checkout Form → kullanıcı öder → İyzico
 callback'e POST eder → `odemeDogrula` (token ile geri sorulur, gelen POST'a
@@ -236,6 +247,18 @@ pahalı şeyi olurdu.
 - **Renk = o ilin 1 numarasının teklifi.** Boş il karanlık kalır; karanlık il
   "burası boş" demenin en kısa yolu ve satılan şey o boşluk. Dolu iller
   `color-mix` ile neon'a doğru ısınıyor (%30'dan başlar ki en ucuzu bile görünsün).
+- **İKİ KATMAN, sebebi önemli.** SVG'de `z-index` yok, boyama sırası belge
+  sırası. Amblem ve il adı illerle aynı katmanda olsaydı plakası küçük bir ilin
+  rozeti, kendisinden sonra çizilen komşusunun altında kalırdı. Önce bütün
+  iller, sonra bütün rozetler çizilir; rozet katmanı tıklamayı geçirmez.
+- **İl adı `:hover`'da çıkar** — ad başka katmanda durduğu için CSS'in iki öğeyi
+  eşleştirmesi gerekiyor, bunun tek yolu il başına bir `:has()` kuralı. Kurallar
+  bileşende üretiliyor (~5 KB), yolları ikinci kez yazmaktan (113 KB) ucuz.
+- **Amblem** ilin 1 numarasının logosu; `Listing.imageUrl` bir data URI olduğu
+  için SVG `<image>`'a doğrudan giriyor, uzak istek yok. Instagram ilanlarının
+  logosu olmadığından çoğunda harf kalır.
+- **Kenardaki illerin adı ortalanmaz** (Çanakkale, Hakkari): ortalanınca çizim
+  alanından taşıp kırpılıyordu, kenara yakınsa ilden içeri doğru yazılıyor.
 - **Yol verisi `src/lib/turkeyMap.ts`** — turkey-map-react v2.0.6'dan (MIT,
   © 2020 Erdi Gökçe) alındı, paket bağımlılık olarak **eklenmedi**: bize yalnız
   path lazımdı. Lisans metni dosyanın başında, kaldırma.

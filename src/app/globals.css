@@ -81,20 +81,43 @@ input[type='number']::-webkit-inner-spin-button {
 }
 
 /* Canli harita. Etkilesimin tamami CSS: 81 ile JS dinleyicisi baglamiyoruz. */
-.harita path {
+.harita .iller path {
   stroke: var(--color-line);
   stroke-width: 0.8;
   transition:
     filter 0.15s ease,
     stroke 0.15s ease;
 }
-.harita a:hover path,
-.harita a:focus-visible path {
+.harita .iller a:hover path,
+.harita .iller a:focus-visible path {
   filter: brightness(1.7);
   stroke: var(--color-neon);
   stroke-width: 1.6;
 }
-.harita a {
+.harita .iller a {
   cursor: pointer;
   outline: none;
+}
+
+/* Rozet katmani ustte durur ama tiklamayi ile gecirir. */
+.harita .rozetler {
+  pointer-events: none;
+}
+
+/* Il adi: yalnizca uzerine gelince. Gorunurluk kurallari bilesende
+   uretiliyor (il basina bir :has() kurali) — sebebi TurkeyMap.tsx'te. */
+.harita .ad {
+  opacity: 0;
+  fill: var(--color-text);
+  stroke: var(--color-ink);
+  stroke-width: 4;
+  paint-order: stroke;
+  font-size: 15px;
+  font-weight: 800;
+  transition: opacity 0.12s ease;
+}
+
+.harita .harf {
+  fill: var(--color-neon);
+  font-weight: 900;
 }
